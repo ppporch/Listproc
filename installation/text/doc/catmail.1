@@ -1,0 +1,94 @@
+.\" 
+.\"  			@(#)catmail.1	6.2 CREN 97/01/14
+.\" 
+.\" 			Copyright (c) 1993-97 by
+.\" 	the Corporation for Research and Educational Networking (CREN)
+.\" 
+.\" All rights reserved. This software comprises confidential
+.\" information of CREN and may not be used, copied or made available to anyone,
+.\" except in accordance with the license under which it is furnished.
+.\" 
+.\" SCCS file: /usr/SCCS/home/server/listproc/distrib/doc/s.catmail.1
+.\" 
+.\" 
+.\" ListProcessor(tm) System
+.\" Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)
+.\"
+.TH catmail 1 "ListProcessor(tm)"
+.SH NAME
+\fBcatmail\fP \- append incoming mail to ListProcessor(tm) system files
+.SH SYNOPSIS
+\fBcatmail\fP {<\fB-L LIST_ALIAS\fP [\fB-e|-o\fP]> | <\fB-r\fP>} [\fB-f\fP]
+.SH DESCRIPTION
+\fIcatmail\fP is used to redirect incoming mail to the ListProcessor(tm) system
+to the appropriate files, according to the flags specified and the list's configuration.
+The files affected are:
+.sp
+.nf
+.in +2
+LPDIR/requests (user requests)
+LPDIR/lists/LIST_ALIAS/mail (messages to be distributed)
+LPDIR/lists/LIST_ALIAS/moderated (messages to be screened out)
+LPDIR/lists/LIST_ALIAS/errors (delivery errors)
+.in -2
+.fi
+.PP
+\fIcatmail\fP reports the
+user id and user name that is currently executing it; the setuid bit
+has to be set when installed. 
+.PP
+\fIcatmail\fP first locks the output file(s)
+before appending to it/them; if the file(s) cannot be locked after 3 minutes, the
+mail is saved under LPDIR/lost+found or LPDIR/lists/LIST_ALIAS/lost+found;
+both \fIlist\fP and \fIlistproc\fP
+lock their mail files while copying them to a safe place. 
+.PP
+\fIcatmail\fP will
+time out after 5 minutes to avoid deadlock situations, and the mail message
+may be returned to the sender as undeliverable.
+.SH OPTIONS
+The following command line options are recognized:
+.TP
+-L LIST_ALIAS
+If the list is not moderated-no-edit, append to
+LPDIR/lists/LIST_ALIAS/mail; otherwise append to
+LPDIR/lists/LIST_ALIAS/moderated (see \fIlist(1)\fP).
+.TP
+-e
+Append to LPDIR/lists/\fILIST_ALIAS\fP/errors instead.
+.TP
+-o
+Send message to the owners instead.
+.TP
+-r
+Append to LPDIR/requests (overrides -L).
+.TP
+-f
+Reformat the message in the process: all lines in the message except the first
+starting with "From " are converted to ">From ".
+(see also SYSTEM\ SETUP in \fIserver\fP(1)).
+.SH USAGE
+For each list (foo), three aliases are required to be defined in your system's
+global aliases file:
+.sp
+.nf
+.in +2
+foo:			|LPDIR/catmail -L foo -f
+foo-request:	|LPDIR/catmail -L foo -fo
+owner-foo:	|LPDIR/catmail -L foo -fe
+.in -2
+.fi
+.sp
+In addition, you need to define the following alias for user requests:
+.sp
+.nf
+.in +2
+listproc:		|LPDIR/catmail -rf
+.in -2
+.fi
+.sp
+where LPDIR is the full path to the directory ListProcessor(tm) is installed.
+.SH SEE\ ALSO
+list(1), listproc(1), server(1)
+.SH COPYRIGHT
+Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)

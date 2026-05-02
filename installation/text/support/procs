@@ -1,0 +1,85 @@
+#!/usr/local/bin/perl
+######################################################################
+#
+#  procs
+#
+#  count the number of commands running from the $LPDIR directory
+#
+######################################################################
+
+#
+# definitions and initializations
+#
+
+
+#ps command lines
+$bsd_ps_command = "ps -gx";
+$sysV_ps_command = "ps -ef";
+
+#ListProc directory
+$lpdir = $ENV{'LPDIR'};
+
+
+#
+# Check to see what style of ps we are using
+#
+system("ps -gx >/dev/null 2>/dev/null");
+if( $? == 0 ) { 
+    $ps_command = $bsd_ps_command; }
+else {
+    $ps_command = $sysV_ps_command; }
+
+
+
+
+$total = 0;
+
+
+#
+# count the processes
+#
+@processes = split(/\n/, `$ps_command`);
+foreach $proc (@processes)
+{
+
+    #strip out the command name & the arguments
+    ($bin,$args) = ($proc =~ m!$lpdir/(\S+)\s+(.*)$!);
+    next if($bin eq "");
+    
+
+    $count{$bin}++;
+    $total++;
+}
+
+
+#
+#  Output totals for each binary
+#
+print "\n";
+foreach $bin (sort keys %count)
+{
+    $col1 = "$bin:";
+    $col2 = $count{$bin};
+    write;
+}
+
+
+#
+#  print the total 
+#
+print "----------------------\n";
+$col1 = "total:";
+$col2 = "$total";
+write;
+print "\n";
+
+
+
+
+#
+#  Two column format for output.
+#
+format STDOUT = 
+@<<<<<<<<<<<<<<<<< @<<<<<<<<<
+$col1,             $col2
+.

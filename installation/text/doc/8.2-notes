@@ -1,0 +1,346 @@
+
+CONTENTS
+
+  New Features
+	 web interface
+	 global user database
+	 pre-delivery filter	  
+	 web archive program
+	 improved logging
+  New list config options
+  New config file directives
+  General changes
+  Bug fixes
+
+
+
+NEW FEATURES
+
+  web interface
+
+     The ListProc 8.2 WWW interface allows access to ListProc's
+     subscription management, subscriber options, archives and other
+     features through a simple graphical interface.  Information on
+     the specific features of the web interface can be found at 
+
+		 http://www.cren.net/lisproc/web.html
+
+
+  global user database
+
+     One of the key enhancements in ListProc 8.2 is the addition of a
+     reverse lookup table for user permissions.  This table relates
+     each user of the system to the permissions they have for each
+     list on the system.  This allows ListProc to quickly and reliably
+     check whether or not someone is a list owner, a subscriber etc -
+     without requiring multiple accesses to the various configuration
+     files. 
+     
+	 The "revdb" command included with ListProc 8.2 is a simple
+     utility for managing this user database.  "revdb" allows four
+     types of actions:
+
+        revdb list [user1 user2 ...]    - List the roles for the specified
+                                          users.  If none are specified, list
+                                          everyone.
+        revdb create                    - Create the user dbm.
+        revdb update <listname>         - Update the dbm values for the
+                                          given list from the list's files.
+        revdb delete <listname>         - Delete the dbm values for the
+                                          given list
+
+
+     Note that in order to maintain the consistency of the reverse
+     database, it is necessary to run "revdb update LIST" any time you
+     manually edit the subscribers file or the owners file to adjust
+     values for a list.  (ListProc's PUT command does this automatically.)
+
+
+  pre-delivery filter
+
+     ListProc 8.2 allows system managers to define a script that will
+     act on outgoing list messages after they have gone through the
+     usual loop, permission and error checks, but before they are
+     actually sent out to the list.  Among other things, this allows
+     sites to include customizable message footers, editorial notes,
+     etc. 
+
+	 If enabled, the filter program will be invoked with any arguments
+	 you give it.  In addition, ListProc adds the following to the end
+	 of the argument list:
+
+		    --infile INFILE --outfile OUTFILE --list LISTNAME
+
+	 where INFILE is the filename of the original message and OUTFILE
+	 is the filename to which the modified message should be written.
+	 (If OUTFILE doesn't exist after the filter exits, ListProc will
+	 simply send out the original message as-is.)
+
+	 The pre-delivery filter is configurable both globally and on a
+	 per-list basis.  The "global_filter_prog" config file directive
+	 defines the path to a default filter program.  This will be used
+	 by all lists that (1) don't have their own filter program defined
+	 and (2) aren't specificially configured to NOT use a filter
+	 program.  The filter program can be given either a full path or a
+	 path relative to the ListProc installation directory.
+
+	 EXAMPLES:
+
+	 global_filter_prog /path/to/program --arg1 value --arg2 value
+	 global_filter_prog support/add_footer
+
+
+	 The OUTBOUND-MESSAGE-FILTER option to ListProc's CONFIG command
+	 controls the message filter options for specif lists.  The
+	 options are as follows:
+
+		    off
+			   disable the message filter for this list
+
+			default   
+			   use the system default filter command (if one has been
+			   defined)
+
+			program /path/to/program [program_args]
+			   Specify the path to the program you want to use for
+			   modifying outgoing messages.  Relative paths are taken
+			   relative to the ListProc installation directory
+			   (LPDIR).
+
+	 EXAMPLES:
+
+	 config listname pword OUTBOUND-MESSAGE-FILTER off
+	 config listname pword OUTBOUND-MESSAGE-FILTER default
+	 config listname pword OUTBOUND-MESSAGE-FILTER program support/add_footer
+
+
+
+  web archiving program
+
+     To support full web access to list archives, ListProc 8.2
+     introduces a new option to allow sites to define an external
+     program to add a message to a web archive.
+
+     ListProc will invoke the program with any arguments you specify.
+     In addition, ListProc will add the following to the end of the
+     program's argument list:
+
+		      --list LISTNAME --arch ARCHIVENAME
+
+	 (where ARCHIVENAME is the current name of ListProc's standard
+	 message archive for this list) The message to be archived is sent
+	 to the program's standard input.
+
+     As with the outbound message filter program, the web archive
+     program can be defined either by a global default or on a
+     list-by-list basis.  The "global_web_archive_prog" config file
+     directive defines the path to a default web archive program.
+     This will be used by all lists that (1) don't have their own web
+     archive program defined and (2) aren't specificially configured
+     to NOT use a web archive program.  The filter program can be
+     given either a full path or a path relative to the ListProc
+     installation directory.
+
+	 EXAMPLE:
+
+	 global_web_archive_prog /path/to/lp-web/utils/add_to_archive
+
+
+	 The WEB-ARCHIVE option to the CONFIG command is used to control
+	 the web archive options on a list-by-list basis.  The options are
+	 as follows:
+
+		    off
+			   disable web archives for this list
+
+			default   
+			   use the system default web archive command (if one has
+			   been defined)
+
+			program /path/to/program [program_args]
+			   Specify the path to the program you want to use for web
+			   archives.  Relative paths are taken relative to the
+			   ListProc installation directory (LPDIR).
+
+	 EXAMPLES:
+
+	 config listname pword WEB-ARCHIVE off
+	 config listname pword WEB-ARCHIVE default
+	 config listname pword WEB-ARCHIVE program /path/to/my/script
+
+	 
+	 The ListProc 8.2 web interface includes a sample web archiving
+	 program in "utils/add_to_archive".  This will work with the
+	 MHonarc and swish programs included with the interface.  You can
+	 either use this as-is, or use it as an example for integrating
+	 ListProc's archives with your favorite mail to HTML conversion
+	 and web searching programs.
+
+  
+
+  Improved logging
+
+     ListProc 8.2 allows greater flexibility in the methods it uses
+     for logging and in the locations of its log files.  These are
+     conntrolled by the new "log" config file directive.  The options
+     for this directive are described below:
+
+     file [logfile]  Log messages are saved to the specified file.  If
+                     no file is specified, messages are written to
+                     "listproc.log" in the ListProc installation
+                     directory.  This is the default.
+
+     individual      individual log files are kept for each ListProc
+                     binary, with names such as ".report.PROGRAM"
+                     (where PROGRAM is the name of the program).
+                     Older messages from these logs are placed in
+                     ".rep.PROGRAM.acc" each time ListProc restarts.
+
+     old_style       This keeps individual log files as with the
+                     "individual" option.  In addition, the log files
+                     include timestamp information on the line after
+                     the actual message.  This is available for sites
+                     that have pre-existing utilities that parse this
+                     older style of log file.  In general, this format
+                     is less useful than the others, and we discourage
+                     its use.
+
+     syslog <FACIL>  This instructs ListProc to send log messages to
+                     the specified syslog facility.  Common choices
+                     for the facility are LOG_DAEMON, LOG_MAIL,
+                     LOG_USER and LOG_LOCAL0 through LOG_LOCAL7
+
+     Examples:
+
+     log file /var/log/listproc
+     log syslog LOG_LOCAL7
+
+     (Note: for compatibility the "syslog" config file directive can
+     still be used to specify syslog logging.  This has the same
+     effect as the "log syslog <FACIL>" command described above.  The
+     "log" directve is preferred for new installations.
+
+
+
+
+NEW LIST CONFIG OPTIONS
+  
+	  WEB-ARCHIVE  
+	     (see above)
+
+	  OUTBOUND-MESSAGE-FILTER  
+	     (see above)
+
+      LISTNAME-IN-SUBJECT
+	  LISTNAME-NOT-IN-SUBJECT
+
+
+	  NON-MIME-MODERATION-MESSAGES
+	  MIME-MODERATION-MESSAGES
+
+
+
+NEW CONFIG FILE DIRECTIVES
+      
+	  global_filter_prog
+	     (see above)
+
+	  filter_prog
+	     Used in list config files to store the filter program
+	     options.  If this is not present, the "default" method is
+	     used.
+
+	  global_web_archive_prog
+	     (see above)
+
+	  web_archive
+	     Used in list config files to store the web archive options.
+	     If this is not present, the "default" method is used.
+
+	  user <username>
+         Define the user as whom ListProc should run.  This prevents
+		 accidental changes to file ownership and permissions by
+		 starting ListProc as root.
+
+	  log
+	     (see above)
+
+
+
+
+GENERAL CHANGES
+
+	internalized list sorting routines 
+	   Previous versions of ListProc relied on external UNIX utilities
+	   for sorting list subscribers.  This was often unreliable.  This
+	   functionality is now handled by an internal sorting routine.
+
+	Internalization of MD5
+       The MD5 algorithm has now been added as an internal component
+       of ListProc.  This simplifies the installation, and prevents
+       potential problems with bad copies of the md5 binary on host
+       systems. 
+
+	Internalization of STATS command
+       The "STATS" command also relied on UNIX utilities determine the
+       number of messages from each active subscriber.  This has now
+       been changed to use an interal routine.  The result is
+       approximately a 6-fold speed up of the STATS command.
+
+	Locking Scheme
+       Previous versions of ListProc used somewhat error prone wait
+       loops with semaphore bits to lock access to critical files.  In
+       ListProc 8.2, these have been replaced with file locks using
+       fcntl().  We believe this should be much more reliable.  IN
+       addition, because the file locks are external, this allows
+       locking of critical files by processes that were NOT spawned by
+       the main serverd process.  This is particularly important for
+       the web interface, since the web interface requires processes
+       to be spawned by the web server.
+
+    Removal of path dependancies
+       The parsing of LPDIR/help/TOPICS has been changed to allow both
+       fully qualified path names as well as relative path names.
+       Relative paths are considered relative to the ListProc
+       installation directory.
+
+    Modified labeling of mail archives
+       Mail archives were previously labled by the contents of the
+       Subject line of the first message in the archive.  This often
+       lead to confusion when people used the INDEX command to view
+       archives.  The archive routines have been changed to instead
+       simply list the list's name and the file creation date as the
+       description. 
+
+    Improved reliability of mbox file handling
+       Several improvements have been made to the handling of incoming
+       message files, both to improve efficiency and reliability.
+	
+
+BUG FIXES
+
+	Fixed bug in farch - previously didn't remove archives w/
+	passwords from master index.
+
+	Changed "message addressed to owners" rejection notice to 
+	"message addressed to list's errors folder"
+
+	Changed owner address in report messages to construct
+	list-requst@host from the list address in the config file, rather
+	than from the system host address.  This allows better hiding of
+	domains, "virtual" domains, etc.
+	
+	Fixed sysexec() to remove spurious ps and fgrep warnings.  These
+	often lead to confusion by cluttering up the LPDIR/.warning file.
+
+	Fixed auth in config command - manager can now use either list or
+	manager password.
+
+	Fixed the output of the REVIEW command to place the list's info
+	file in the correct spot.  (In previous versions, the info
+	appeared between the header for the subscriber list and the actual
+	list itself.)
+
+	removed the spurious comma after the list address in the "init" command
+
+

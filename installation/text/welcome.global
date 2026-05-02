@@ -1,0 +1,383 @@
+#!/bin/sh
+#  			@(#)welcome.global	6.7 CREN 97/02/11
+# 
+# 			Copyright (c) 1993-97 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/s.welcome.global
+#
+
+
+#!/bin/sh
+# Global welcome file for subscription to a list. 
+# When a new subscription is entered, this script is executed and the output
+# is sent to the new subscriber. The user's request is piped to stdin, and
+# the following arguments will be passed:
+#
+#  $1: The list's name
+#  $2: the list's address
+#  $3: The owner's address
+#  $4: The server's address for requests
+#  $5: The address the user has been subscribed with
+#  $6: The user's initial password
+#  $7: Boolean: 1 if the system accepts live connections, 0 otherwise
+#  $8: Boolean: 1 if the list allows change of subscription address, 0 otherwise
+#  $9: The value of the LPDIR environment variable
+#  $10: Integer:	0=SEND-BY-ALL
+#			1=SEND-BY-SUBSCRIBERS
+#			2=SEND-BY-SUBSCRIBERS-CONFIRM
+#			3=SEND-BY-OWNERS
+#  $11: Integer:	0=STATS-BY-ALL
+#			1=STATS-BY-SUBSCRIBERS
+#			2=STATS-BY-OWNERS
+#  $12: Integer:	0=REVIEW-BY-ALL
+#			1=REVIEW-BY-SUBSCRIBERS
+#			2=REVIEW-BY-SUBSCRIBERS-SHORT
+#			3=REVIEW-BY-OWNERS
+#  $13: Integer:	0=ARCHIVES-TO-ALL
+#			1=ARCHIVES-TO-SUBSCRIBERS
+#			2=ARCHIVES-TO-OWNERS
+#  $14: Boolean: 1 if list archived, 0 otherwise
+#  $15: Boolean: 1 if list is moderated, 0 otherwise
+#  $16: String: frequency of digests, if digests available and subscribers 
+#       can set mail mode to DIGEST, "" otherwise
+#  $17: String: disabled requests for this list; "" if no requests disabled
+#  $18: String: disabled SET options for this list; "" if none of them are
+#       disabled. These options should be coma separated; example:
+#	"MAIL DIGEST,CONCEAL NO,PASSWORD,"
+#
+# Notice: this file is not required to be a script!
+
+list_alias=$1
+list_addr=$2
+list_owners=$3
+server_addr=$4
+user_addr=$5
+user_pw=$6
+is_live=$7
+can_change_addr=$8
+lpdir=$9
+shift;shift;shift;shift;shift;shift;shift;shift;shift
+who_can_post=$1
+who_gets_stats=$2
+who_can_review=$3
+who_gets_archives=$4
+is_archived=$5
+is_moderated=$6
+digest_freq=$7
+disabled_req=$8
+disabled_set_opt=$9
+shift;shift;shift;shift;shift;shift;shift;shift;shift
+
+
+echo Dear user,
+echo
+echo Your request
+echo 
+echo "		 	`cat - `"
+echo 
+echo has been successfully processed.
+echo 
+cat << EOF
+
+		********** HOW TO POST TO THE LIST **********
+
+Welcome to list $list_alias ($list_addr). The system has recorded
+your address as
+
+			$user_addr
+
+EOF
+
+# Tell 'em about posting
+if [ $who_can_post -eq 1 -o $who_can_post -eq 2 ]; then
+  echo and it is required that you send your postings from this address.
+  if [ $who_can_post -eq 2 ]; then
+    cat << EOF
+It is also required that your postings be confirmed; for that, you will need
+to include the following line in every mail message you send to the list:
+
+Confirm: $user_pw
+
+This should appear in the first line of the body of the message you are
+trying to post. "$user_pw" is your system-assigned password; if you change it
+later on, you should make sure the new one is used after the Confirm:
+EOF
+  fi
+  if [ $is_moderated -eq 1 ]; then
+    echo Please also notice that the list is moderated so your postings may be delayed.
+  fi
+elif [ $who_can_post -eq 3 ]; then
+  echo and you can only audit the list since only privileged users \(e.g. owners\) can
+  echo post to it.
+elif [ $who_can_post -eq 0 ]; then
+  cat << EOF
+and since the list accepts postings from anyone, you can post to it from
+any of your email addresses.
+EOF
+fi
+
+# Tell 'em how to get off.
+cat << EOF
+
+		********** HOW TO GET OFF THE LIST **********
+
+To sign off from the list, email to $server_addr with the following 
+request:
+
+			signoff $list_alias
+or
+			unsubscribe $list_alias
+
+		********** GETTING YOUR SUBSCRIPTION ATTRIBUTES **********
+
+You may get your current subscription attributes at any time by sending the
+following request to $server_addr:
+
+			query $list_alias
+EOF
+
+cat << EOF
+
+		********** WHERE TO SEND EMAIL **********
+
+If you want to post messages to list $list_alias, you should direct your 
+email to $list_addr, not $server_addr. 
+If you wish to send requests please do not send them to the list -- they 
+will not be processed. Instead direct them to $server_addr. 
+Requests sent to $server_addr should be placed in the body of the 
+email message, not the Subject:. ListProc ignores requests in the Subject: 
+field.
+
+You can, however, put as many requests as you like in one mail message; each
+request should be on a line by itself. If your request is too long for your
+mailer to handle, you can break it in multiple lines, but each line should
+end with the character & (ampersand). For example, here are two separate
+requests:
+
+set $list_alias &
+mail &
+ack
+help
+
+The ampersands in the above example are immediately followed by carriage
+returns. The above requests are equivalent to:
+
+			set $list_alias mail ack
+			help
+EOF
+# Tell 'em about digests.
+if [ -n "$digest_freq" ]; then
+  cat << EOF
+
+		********** DIGESTS **********
+
+All messages posted to this list are also available in $digest_freq digests.
+If you wish to receive messages in digest format you may send the following
+request to $server_addr:
+
+			set $list_alias mail digest
+EOF
+fi
+
+# Tell 'em about the owners.
+cat << EOF
+
+		********** LIST OWNERS **********
+
+The list's owners are $list_owners.
+You should contact them if there are any problems.
+EOF
+
+# Tell 'em about the password
+if [ $is_live -eq 1 -o $can_change_addr -eq 1 ]; then
+  cat << EOF
+
+		********** YOUR LISTPROC PASSWORD **********
+
+The system has assigned you an initial password: $user_pw
+You may change it by sending the following request to $server_addr:
+
+		set $list_alias password $user_pw new-password
+
+where new-password is the new string of characters that you would like
+to use as your ListProc password.
+
+WARNING: You should NOT use your login password as this is not a secure
+mechanism.
+
+EOF
+# Determine how echo suppresses new-line
+echo "a\c" > /tmp/echo
+if [ "`grep c /tmp/echo`" = "a\c" ]; then
+  n='-n'
+  c=''
+else
+  n=''
+  c='\c'
+fi
+rm /tmp/echo
+  echo $n "This password is to be used when$c"
+  if [ $is_live -eq 1 ]; then
+    cat << EOF
+ connecting to this server over the Internet
+for interactive processing of requests (send a 'help live' request for more
+information)
+EOF
+  fi
+  if [ $is_live -eq 1 -a $can_change_addr -eq 1 ]; then
+    or="or when"
+  else
+    or=""
+  fi
+  if [ $can_change_addr -eq 1 ]; then
+    cat << EOF
+$or when you wish to change the address you are subscribed with.
+In this case, send the following request to $server_addr:
+
+		set $list_alias address $user_pw new-address
+
+or when the list requires confirmation for accepting your posts (see above).
+EOF
+  fi
+fi
+
+# Tell 'em about statistics.
+if [ $who_gets_stats -eq 0 -o $who_gets_stats -eq 1 ]; then
+  cat << EOF
+
+		********** GETTING STATISTICS **********
+
+To get list statistics you may send the following request to 
+$server_addr:
+
+			stats $list_alias
+EOF
+else
+  echo Statistics for this list are available to privileged users \(e.g. owners\) only.
+fi
+
+# Tell 'em about review.
+if [ $who_can_review -le 2 ]; then
+cat << EOF
+
+		********** REVIEWING THE LIST **********
+
+To review the list's settings you may send the following request to 
+$server_addr:
+
+			review $list_alias
+EOF
+  if [ $who_can_review -eq 2 ]; then
+    echo
+    echo Please notice that only privileged users \(e.g. owners\) are allowed to see the
+    echo list of subscribers in this case.
+  fi
+else
+  echo Review requests are available to privileged users \(e.g. owners\) only.
+fi
+
+# Tell 'em about archives.
+cat << EOF
+
+		********** ACCESS TO THE LIST'S ARCHIVES **********
+
+EOF
+if [ $is_archived -eq 0 ]; then
+  cat << EOF
+The list is not currently archived, therefore it is not possible to get past
+postings.
+EOF
+else
+  if [ $who_gets_archives -le 1 ]; then
+    cat << EOF
+The list is archived regularly and many, if not all, previous postings are
+available from this server. All past mail messages are collected into
+(daily, monthly, etc) logs; to get a list of the available logs for this list
+you may send the following request to $server_addr:
+
+			index $list_alias
+
+Each line will show you the log file's name, its size, and a brief comment.
+You can then get any logs with the GET request. For example, if you wish to
+get log9611 you may send the following request to $server_addr:
+
+			get $list_alias log9611
+
+Here we assume log9611 is the name of the log. Log names may not necessarily
+be uniform.
+EOF
+  else
+    echo Archive access is restricted to privileged users \(e.g. owners\) only.
+  fi
+fi
+
+# Tell 'em about disabled requests.
+if [ -n "$disabled_req" ]; then
+  cat << EOF
+
+		********** DISABLED REQUESTS **********
+
+The owners have also chosen to disable a few requests for regular subscribers.
+These requests are: $disabled_req
+Only privileged users (e.g. owners) may issue these requests.
+EOF
+fi
+
+# Tell 'em about disabled set options.
+if [ -n "$disabled_set_opt" ]; then
+  cat << EOF
+
+		********** DISABLED SET OPTIONS **********
+
+Finally, regular subscribers may not change some or all of their subscription
+attributes. Specifically, the following SET options are NOT allowed:
+
+EOF
+  while [ -n "$disabled_set_opt" ]; do
+    echo \	\	\	set $list_alias `echo $disabled_set_opt | cut -d, -f1`
+    disabled_set_opt=`echo $disabled_set_opt | cut -d, -f2-`
+  done
+  cat << EOF
+
+For further information on SET please send the following request to $server_addr:
+
+			help set
+EOF
+fi
+
+cat << EOF
+
+		********** HOW TO GET MORE HELP **********
+
+To get more information on how to use this service, please send the 
+following request to $server_addr:
+
+			HELP
+
+There are far more options, settings, and niceties about ListProcessor(tm)
+and we encourage you to explore all of them; HELP should be your starting
+point.
+
+Enjoy!
+
+ListProcessor(tm)
+EOF
+
+# Now execute the list-specific .welcome file, if found; notice $lpdir is not
+# copied for security reasons
+
+lw=$lpdir/lists/`echo $list_alias | tr '[a-z]' '[A-Z]'`/.welcome
+if [ -f $lw ]; then
+#  shell=`head -1 $lw | grep '^#\!'`
+#  if [ $? -eq 0 ]; then
+#    `echo $shell | cut -c3- ` $lw $list_alias $list_addr '"$list_owners"' $server_addr '"$user_addr"' $user_pw $is_live $can_change_addr $who_can_post $who_gets_stats $who_can_review $who_gets_archives "$archive_fmt" $is_moderated $digest_freq "$disabled_req" "$disabled_set_opt"
+#  else
+    cat $lw
+#  fi
+fi
+exit 0

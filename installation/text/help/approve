@@ -1,0 +1,40 @@
+#! /bin/sh
+#                          @(#)approve	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.approve
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: approve <list> <password> <tag> [tag] ...
+
+        Each time a new message arrives for a moderated list, a copy is
+        sent to the owner soliciting his approval, with proper instructions
+        for approving or discarding the message. Each such message is
+        identified by a unique tag number. 
+
+        If any message(s) is/are to be approved for posting, the owner sends
+        an 'approve' request providing the proper tag number(s).
+
+        Messages neither approved nor discarded are not removed from the spool.
+EOF

@@ -1,0 +1,48 @@
+.\" 
+.\"  			@(#)start.1	6.2 CREN 97/01/14
+.\" 
+.\" 			Copyright (c) 1993-97 by
+.\" 	the Corporation for Research and Educational Networking (CREN)
+.\" 
+.\" All rights reserved. This software comprises confidential
+.\" information of CREN and may not be used, copied or made available to anyone,
+.\" except in accordance with the license under which it is furnished.
+.\" 
+.\" SCCS file: /usr/SCCS/home/server/listproc/distrib/doc/s.start.1
+.\" 
+.\" 
+.\" ListProcessor(tm) System
+.\" Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)
+.\"
+.TH start 1 "ListProcessor(tm)"
+.SH NAME
+\fBstart\fP \- start/stop the ListProcessor(tm) system
+.SH SYNOPSIS
+\fBstart\fP [\fB-c\fP] [\fB-r\fP] [\fB-k\fP]
+.SH DESCRIPTION
+\fIstart\fP is used to start or stop the ListProcessor(tm) system.
+When starting the system, any
+previous server processes still running are killed, all necessary
+lock files are created, any previous reports are archived into files with
+extension \fI.acc\fP (if not using syslog(3)), new files and directories are
+created as necessary, interrupted list mail is restored, and \fIserverd\fP(1)
+is spawned.
+.PP
+\fIstart\fP reads the \fIconfig\fP file (see \fIserver(1)\fP), and should
+always be run from the server account.
+.SH OPTIONS
+The following command line options are recognized:
+.TP
+-c
+Suppress confirmation when killing processes or when creating new
+mailing list directories and files.
+.TP
+-k
+Just kill any old server system processes and exit.
+.TP
+-r
+Restrict reporting to stdout.
+.SH SEE\ ALSO
+server(1), serverd(1)
+.SH COPYRIGHT
+Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)

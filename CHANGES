@@ -1,0 +1,397 @@
+3/17/98    8.2  
+
+3/18/98    * Added log messages to log every batch of subscribers
+           * fixed tabs in help/configuration
+
+3/19/98    * Fixed headers on moderated-no-edit messages (Reply-To: pointed 
+             to the list rather than to listproc@host.)
+           * Modified individual logging to copy info to acc files at
+             most once per day
+           * Fixed web-archive options when list is archiving digests
+
+3/20/98    * added writing to .headers
+           * fixed empty archive w/ archiving digests
+
+3/23/98    * Fixed case sensitivity on ARCHIVE ... [messages|digests]
+           * Fixed spurious "From " line on outgoing messages
+           * Fixed digests to include entire Sender line.
+           * Fixed archive compression routines to NOT use wildcards
+             incompatible with sh
+           * Fixed subscriber password in welcome message
+           * Fixed core dump in revdb with unknown list names
+           * fixed serverd to send welcome.live
+           * fixed typos in list error message
+           * updated command confirmation message text
+
+3/24/98    * fixed core dump in list with bad sender address
+           * Added list name to digest subject line
+           * fixed install.listproc to rename old saved binaries
+           * fixed install.listproc to skip revdb create for 8.2 installations
+           * re-added message tag to Subject: line of moderated-no-edit 
+             approval messages
+           * modified lp2 to bypass CONFIRM settings (since identities
+             are confirmed by web login.
+
+3/25/98    * re-added alternate address checking for SEND-BY-SUBSCRIBERS lists
+
+3/26/98    * Fixed moderated-no-edit to write proper MBOX files
+           * Fixed "set" command to check user password again
+           * added sender address to confirmation messages
+
+3/30/98    * modified text in error notification messages
+
+3/31/98    * fixed digest bug - not checking size or lines!!!! 
+           * fixed "listproc" bug - sub/unsub confirmation checks turned off!!!
+           * modified reports command to deal intelligently w/ empty log files
+           * fixed some spelling errors / typos in messages
+
+4/1/98     * fixed "put" command to properly return responses
+           * fixed typo that prevented archive file names from computing 
+             the %# formatting correctly.
+
+4/2/98     * fixed off-by-one problem with %# in archive names
+
+4/3/98     * fixed spacing typo in alternate address message
+           * added umask and archives_umask directives to config file
+           * changed "message rejected" notification to include sender's email 
+             address.
+           * fixed security bug in config request - potentially send
+             back config information for the wrong list!
+           * fix potential crash when serverd tries to lock LPDIR/requests
+
+4/13/98    * Modified "list" to allow site manager to send to any list
+           * fixed "list" to NOT use list password when creating new arc
+
+4/23/98    * added additional error traps to subfile_quicksort, to prevent
+             infinite loops from invalid data.
+           * modified "list" binary not to dump core with abnormal exit
+           * modified "list" binary to notify manager when exiting abnormally
+
+
+Version 8.2.05
+
+5/7/98     * Made EDIT/PUT args case-insensitive
+
+5/12/98    * removed LISTNAME-IN-SUB from digest messages
+           * removed case-sensitivity from addrcmp
+           * fixed list binary to properly warn manager on unexpected exit
+           * fixed core dump naming in list binary
+           * properly update users.db on config .. password and init commands
+           * modified public_msg increment behavior
+           * fixed "set .. address" command
+
+5/14/98    * fixed MMAP_FILE handling to be more careful about empty files
+
+
+Version 8.2.06
+
+5/19/98    * fixed parsing problem in pl_address_from_list
+           * added extra loop check to mail sending routines
+
+
+Version 8.2.07
+
+5/21/98    * fixed potential race condition with deletion & adding of 
+             users durring mail delivery.
+
+6/22/98    * modified revdb to NOT load all list config info unless necessary
+           * fixed revdb to be case-insensitive with list names
+
+6/23/98    * fixed (newly introduced) bug with "revdb create"
+
+6/25/98    * modified "revdb delete" and "revdb update" to accept --fast 
+             option at the end, to speed processing of large lists. 
+
+
+Version 8.2.08
+
+
+7/5/98     * fixed looping problem in pl_addresses_to_list when given bad 
+             email address information (ie "[owners] ").
+
+7/16/98    * added DIGEST-MIME option to SET command (jrvb)
+
+7/17/98    * modified syntax to allow clean compilation on all platforms
+
+
+*************************************************************************
+
+Above changes by Rob; the following by Harold.  Items preceeded by a four
+digit number refer to problem report numbers in http://bugs.cren.net.
+
+*************************************************************************
+
+Changes for 8.2.09:
+
+renamed text/README.install to README.upgrade;
+
+Rearranged source tree, used new version of Sleepycat DBM
+
+Removed excess directories in the dbm dir to keep CVS size down
+
+Renamed lp-web/README.INSTALL to README.install
+
+Put contents of subdirs in lputils, etc. in containing directories so
+that GNU make is not required to build them (I belive it's still
+required to make the dependancies properly).
+
+Modified ListProc makefiles to use db files in place and patched one
+problem with new database API.
+
+Created db makefile, wired it to use Makeinclude.local so all system
+specific stuff is isolated to that file (i.e. the file it's cloned
+from).
+
+Made initial improvements to distribution cutting system.
+
+Sample top level config file:
+
+  added comment for ignore_requests for free email systems
+  improved doc for serverd
+  updated to remove sense_requests bug, and some cleanup
+
+Wrote first cut testing system and created first set of tests
+
+Finished, categorized, and prioritized bug and enhancement list
+
+TAGGED cvs-8-2-09-0 (woops, meant to tag it as lp-8-2....)
+
+1087 Eliminate check and logging of "fake mail"; no longer relevant to
+     the current Internet
+
+1079 Add system type to version command
+
+1022 Add full version info to X-Listprocessor-Version: header 
+
+removed fancy core dumping through symlink; doesn't work on all platforms
+
+TAGGED lp-8-2-09-01
+
+fixed MAX_SET_OPTIONS which was set too high; could segfault on a set
+syntax error when the option was not one of the 5 allowed.  Moved it
+in defs.h to where it was next to other definitions that depended on it
+
+Changed lpglobals.c:COPYRIGHT, start and ILP copyright strings to 99
+from 98.  Former is only used by listproc currently.
+
+Modified ILP inital status output for clarity, including ILP "timout"
+(it's really a max session length).
+
+1022 Add full version info to startup line
+
+1070 Fix tm_year problems with old_style logging and .warnings file, etc.
+
+     This means that timestamps of the format "Time/Date: 10:38:16,
+     7/21/99" will roll over to "Time/Date: 10:38:16, 1/1/00" in the
+     year 2000.
+
+TAGGED lp-8-2-09-02
+
+Fixed obscure bug where dates like March 4th would equal April 3rd in
+the same year; this likely only hit in rare circumstances.
+
+Fixed failure to update .limits file; it was being opened "rw" rather
+than "r+".  Added log message to check_message_limit.
+
+Fixed mispelling of word "characters" in moderated edit message.
+
+1046a limits: message per day (message-limit/max-message-per-day)
+      limit fixed, including errors and and owner-listname (which goes
+      to the errors inbox).  listname-request not included, since it
+      goes to the global inbox, and I don't know how to safely put a
+      message in it in limbo.
+
+Fixed general bug in subscriber file iterator system---when an
+iterator was initialized, the listname was set, and then a memset
+cleared the whole structure!  This could cause a lot of seg faults
+in debugging statements, including one in the iterator next function.
+
+1077 Commas in .subscribers file cause subfile_slist_next() infinite
+     loop fixed; if extract_address_from_string fails for any reason,
+     subfile_slist_next will skip the bad address after logging a
+     warning message.
+
+Added bad address checking for adding subscriptions, controlled by
+three new config options:
+
+  address_domain_required: allowed values no, machine, fully_qualified
+
+no means a simple local name on the machine running ListProc is allowed,
+e.g. "hga".
+
+machine requires an @ and something after it, e.g. "hga@cren"
+
+fully_qualified requires at least one period after the @, e.g.
+"hga@cren.net"; it is the default.
+
+Note that the following two are just sets of not allowed characters,
+and period is used to mark the beginning and ending of the string (I
+didn't want to use ' since you probably don't want to allow it in
+domains):
+
+  address_illegal_local: default .()<>,;\[]" |{}@.
+
+  address_illegal_domain: default .()<>,;:\[]"' |{}.
+
+The two specify not allowed characters in the local-part (what is
+before the @, or the whole address if there is no @ and
+address_domain_required is set to no), and in the domain part (what is
+after the @).  In addition, the local part is allowed to be quoted
+(e.g. "ugly X.400 address"@isormite.org); any character other than '"'
+is allowed between the quotes.
+
+TAGGED lp-8-2-09-03
+
+Updated top level config file for the above overrides and added
+comment about grace period not working for error_analysis.
+
+Found and fixed error in current loop detection; Message-Id: checks
+had no chance of working.  (The original and still in place checks
+look for 3 or more instances of either a Message-Id: that has already
+been received (I think---I don't know if this check really works), or
+"X-Listprocessor-Version:")
+
+1046d owner loops; Outgoing error mail now has a Message-Id: with the
+      following format:
+
+  <LPS9907291555.10300.1@listproc.lptest.net>
+
+  or ignoring the framing <>:
+
+    LP<type><timestamp>.<pid>.<count>@<site>
+
+  where:
+
+   LP is for ListProc, of course
+   count ensures the uniqueness of the message id
+   type is one of E for error, A for admin, S for sender, R for reject
+   timestamp with minute resolution in 24 hour local time, i.e. 9907291403
+   pid is the process id generating the email
+   site the fully qualified domain name of the site
+
+      Type R is not yet implimented (reject messages do not got
+      through a common interface), and A and S are ignored.  Type E is
+      now wired into the bounce detection system for error mail (mail
+      to owner-<listname>, which is what Sender: is set to).  Currently
+      it just detects the loop, writes a log message, and does not
+      send the mail out.
+
+1031 Added logging for all explicit invocations of the state changing
+     revdb commands: create, update, delete
+
+1078 invalid From: line with only a comment causes core dump: it turns
+     out that extract_address_from_header did not handle the case
+     where there were *no* valid tokens in the header (comments are
+     properly ignored).
+
+1052 auto-delete-subscribers logging; now puts timestamp in per-list file
+
+1089 Modified catmail and listproc to report Message-Id like list;
+     for catmail, the "Access granted to user id <uid> (<name>)"
+     message is now in abbreviated from in front of this message.
+
+TAGGED lp-8-2-09-04 (the new feature/major bug code freeze for 8.2.09)
+
+Modified Makefiles, etc. for -O compilation with gcc 2.9.5; had to
+make a minor mod to initilization of months and its use to get around
+a new stringency in 2.9.5.
+
+Lots more improvements to build system (starting from previous work).
+
+TAGGED lp-8-2-09-06
+
+Fixed a bug in listproc from a sloppy change to using message_id_match
+(to see if a duplicate came in) that left a lingering fclose on an
+unopened *FILE.  Under linux-glibc 2.0.x or 2.1.1, but not solaris,
+this would segfault when a request to listproc came in with a
+message-id equal to one of the previous N request message ids.
+
+Also noticed that the following addition of a new message id to the
+top level .message.ids was no longer locked, and fixed that after
+satisfying myself that it was safe (or at least was as safe as the
+other uses of lock in that function).
+
+Build system pretty much finished, which now consists of two expect
+scripts.  The first one sets up Makeinclude.local in a convenient
+location, along with testing to make sure that core dumps work, etc.
+Then you adjust the Makeinclude.local, and later when it proves itself
+move it into the offical sources.  Second script ftp's all the
+distribution files over, sets things up, compiles, runs the test
+suite, and then ftp's the binaries back.  Total automation, does all
+builds in parallel.  Both can be re-run without problem.
+
+TAGGED lp-8-2-09-07
+
+Distribution system pretty much finished (this packages the above bins
+tars with the text tar and the various installation, etc. files).
+
+Fixed upgarde misspelling bug in install.listproc.  Added debug
+directory (which contains unstripped binaries) to upgrade save of old
+binaries.
+
+Made first cut for alpha releases versions of the README.INSTALL,
+etc. files.
+
+Fixed various problems in send/lpsmtp.c: partial writes were not
+handled, causing the Linux truncation bug.  Output was line at a time,
+and one or two (!) write system calls per line.  Output was also
+non-blocking, and spun retrying the write while waiting for the kernel
+output buffer to have some free space.  Output of DATA (the email
+itself) is now buffered, blocking, and handles partial writes correctly.
+
+Changed default deliver_files in text/config to daily instead of hourly.
+
+TAGGED lp-8-2-09-08
+
+Built alpha release binaries on above tag:
+
+bins.sparc-solaris2-5-1.990823-1511.tar.Z     gcc 2.95, /usr/ccs/bin
+bins.sparc-solaris2-7.990823-1511.tar.Z       gcc 2.95, /usr/ccs/bin
+bins.i386-linux2-gclib2-0.990823-1511.tar.Z   gcc 2.7.2.3, Red Hat 5.2
+
+Made changes to fix compile time warnings and errors for BSDI 2.1 and
+FreeBSD 2.2.8.
+
+Updated database to version 2.6.7.
+
+1107 #1: out of order error message due to recursive calls and
+         resulting out of order buffer flushing.
+
+TAGGED lp-8-2-09-09
+
+Modified V1 test script to eliminate/modify tests with two output
+emails to eliminate timing problems.
+
+One final FreeBSD include file fix for port/sysdefs.h.
+
+Built alpha release binaries on above:
+
+bins.sparc-solaris2-5-1     gcc 2.95, /usr/ccs/bin
+bins.sparc-solaris2-7       gcc 2.95, /usr/ccs/bin
+bins.i386-linux2-gclib2-0   gcc 2.7.2.3, Red Hat 5.2
+bins.i386-linux2-gclib2-1-1 egcs 2.91.66, Red Hat 6.0
+bins.i386-bsdi2-1           gcc 2.7.2
+bins.i386-bsdi4-0           gcc 2.7.2.1
+bins.i386-freebsd2-2-8      gcc 2.7.2.1
+
+Added cast to new setsockopt in send/lpsmtp.c so that older systems
+(e.g. Solaris 2.5.1) that don't use void * won't complain.
+
+Made minor changes for AIX strict xlc's compiler.
+
+TAGGED lp-8-2-09-10
+
+8.2.09/991022-1420
+
+bins.rs6000-aix4-2-0-0       xlc
+
+TAGGED lp-8-2-09-11 (last snapshot before 10)
+
+TAGGED lp-8-2-10-00 (baseline for 8.2.10)
+
+----------------      
+
+General note for 8.2.09: I was not able to reproduce any revdb case
+sensitivity bugs; for now I'm declaring them to be a version of the
+general database corruption problem, which will be hopefully fixed by
+the new version of the embedded database.

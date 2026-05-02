@@ -1,0 +1,37 @@
+# 
+#  			unwanted.hosts	6.2 CREN 98/04/17
+# 
+# 			Copyright (c) 1993-98 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+#
+
+
+#
+# Sample unwanted.hosts file. List here all host names, IP addresses and/or
+# aliases which are not allowed to connect to your ILP server.
+# Each line may have multiple entries.
+#
+# If you want to allow access to some predetermined hosts only, create the file
+# priv.hosts (under this directory) and put the privileged host names and/or
+# IP addresses in it, in the same format as this file. priv.hosts has higher
+# priority than unwanted.hosts, i.e. access will be allowed to clients
+# connecting only from hosts listed in priv.hosts
+#
+# For example, to allow access to machines on your local network only, you
+# may do:
+#
+# % ln -s /etc/hosts priv.hosts
+
+#
+# Examples
+#
+#localhost
+#127.0.0.1
+#128.255.255.202  somehost
+
+

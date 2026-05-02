@@ -1,0 +1,42 @@
+#!/bin/sh
+#  			@(#)signoff.global	6.2 CREN 97/01/14
+# 
+# 			Copyright (c) 1993-97 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/s.signoff.global
+#
+
+
+#!/bin/sh
+# Global signoff file.
+# When a user is unsubscribed, this script is executed and the output is sent
+# to the user. The user's request is piped to stdin, and the following 
+# arguments will be passed:
+#
+#  $1: The list's name
+#  $2: the list's address
+#  $3: The owner's address
+#  $4: The server's address for requests
+#  $5: The address the user had been subscribed with
+#  $6: The value of the LPDIR environment variable.
+#
+# Notice: this file is not required to be a script!
+
+echo Dear user,
+echo
+echo your request
+echo
+echo "		 	`cat - `"
+echo
+echo has been successfully processed.
+echo 
+cat << EOF
+You have been removed from list $1 ($2).
+Thank you for being with us.
+EOF
+exit 0

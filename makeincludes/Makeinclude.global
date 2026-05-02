@@ -1,0 +1,54 @@
+#-*-makefile-*-
+
+include $(SRCDIR)/makeincludes/Makeinclude.local
+
+CC		= $(LP_CC)
+DEFINES		= $(LP_DEFINES)
+OPTIMIZATION	= $(LP_OPTIMIZATION)
+LDFLAGS		= $(LP_LDFLAGS)
+LIBS		= $(LP_LIBS)
+MATH_LIB	= $(LP_MATH_LIB)
+PORTNAME	= $(LP_PORTNAME)
+
+
+#
+# make sure we have a sane rule for the default....
+#
+aux_start: all
+
+#SILENT_MAKE = -s
+
+DBDIR		= $(SRCDIR)/../../dbm
+
+CFLAGS		= -c $(OPTIMIZATION) -I$(SRCDIR) -I$(DBDIR) $(DEFINES)
+LD			= $(CC) -I$(SRCDIR) $(LDFLAGS)
+
+DBLIB			= -L$(DBDIR) -llpdb
+EXTERNAL_LIBS	= $(LIBS) $(MATH_LIB) $(DBLIB)
+
+
+PORT_LIB		= $(SRCDIR)/port/liblpport.a
+UTIL_LIB		= $(SRCDIR)/lputil/liblputil.a
+OBJ_LIB			= $(SRCDIR)/objects/libobjects.a
+SEND_LIB		= $(SRCDIR)/send/libsend.a
+CMD_LIB			= $(SRCDIR)/commands/libcommands.a
+LP_LIB			= $(SRCDIR)/lplib/liblplib.a
+LOCAL_LIBS		= $(LP_LIB) $(SEND_LIB) $(OBJ_LIB) \
+				  $(UTIL_LIB) $(PORT_LIB) 
+
+ALL_LIBS		= $(CMD_LIB) $(LOCAL_LIBS)
+
+FORCE_LIBS		= $(SRCDIR)/FORCELIBS
+PREHISTORIC		= $(SRCDIR)/makeincludes/PREHISTORIC
+
+$(ALL_LIBS): $(FORCE_LIBS)
+	@echo checking $@
+	@cd `dirname $@`; $(MAKE) $(SIMPLE_MAKE) $(SILENT_MAKE) lib
+
+$(FORCE_LIBS):
+
+DUMMY:
+
+
+include $(SRCDIR)/makeincludes/Makeinclude.deps
+

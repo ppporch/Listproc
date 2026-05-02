@@ -1,0 +1,9 @@
+2002-02-10: A note about the CVS tree:
+
+ This directory contains the partial contents of the distribution file named:
+ lp8.2.09.i386-linux2-gclib2-1-1.990901-1128.tar
+
+ The binary part has been removed and can be rebuilt from the sources in CVS.
+ The original text archive "text.990823-1637.tar.Z" (which was contained in
+ the binary distribution) has been expanded in the "text" directory. 
+

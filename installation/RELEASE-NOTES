@@ -1,0 +1,143 @@
+Release notes for ListProc 8.2.09:
+
+See the CHANGES file for a detailed list of bugs fixed and features
+added.  Below you will find a summary, plus details on how to use the
+new features:
+
+A few critical bugs were fixed: max-messages-per-day, Linux
+truncation, some nasty loop or core dump generators, etc.  Validation
+for subscriber addresses, a new anti-owner loop mechanism, and various
+logging was added, and a few other things were touched up, including
+SMTP output.
+
+Logging has been improved by adding full version and revision
+information to the startup line in the logging system, and to the
+X-Listprocessor: header.  Also added were logging of state changing
+invocations of revdb (create, update, delete), a timestamp to the
+per-list log of auto deleted subscribers, and the system type it was
+built with (e.g.  "solaris2.7" for Solaris 7) to the version/release
+command.  The check and logging for "fake mail" has been removed (it's
+not relevant in the current Internet, and is quite annoying).
+
+Catmail and listproc were modified to report Message-Id: like list
+does, and the catmail, "Access granted to user id <uid> (<name>)"
+message was folded into the front of this new Message-Id message.
+This feature will allow tracing of a message through the mailing
+process.
+
+Due to failures in the old ListProc core dump system on some
+platforms, the old linking system has been dropped, and ListProc core
+dumps to just plain "core".  The new subdirectoy "debug" contains
+unstripped copies of the binaries; if you get a core dump, please use
+gdb to report a backtrace, and save (rename and/or move) the core file
+for further analysis.  You can do a backtrace by invoking gdb like this
+from the top level ListProc directory:
+
+  gdb debug/<the program that blew up> <the name of the core file>
+  bt
+
+and then cut and paste the results into your email message to lpts@cren.net.
+
+You can figure out which program died by looking at the ListProc log
+output; also, gdb will tell you if you specified the wrong program.
+
+Message limits for the total number of messages sent to a list per day
+(message-limit/max-message-per-day) are working again.  This including
+counting mail to owner-listname address, which is the errors address
+(it's what Sender: is set to), and this can be used as a last ditch
+way to stop owner loops.  listname-request is not presently included
+since it goes to the global inbox.
+
+The previously announced to the list tm_year Y2K problems with
+old_style logging and .warnings file, etc. have been fixed; timestamps
+of the format "Time/Date: 10:38:16, 7/21/99" will roll over to
+"[...]/00" in the year 2000.
+
+The problem with commas in a .subscribers file causing
+subfile_slist_next() to infinitely loop has been fixed; if
+extract_address_from_string fails for any reason, subfile_slist_next
+will skip the bad address after logging a warning message.
+
+Substantial validation of addresses used by SUBSCRIBE/ADD has been
+incorporated, and the defaults can be overridden by three new
+top-level config file options: address_domain_required,
+address_illegal_local, and address_illegal_domain:
+
+  address_domain_required: allowed values no, machine, fully_qualified
+
+no means a simple local name on the machine running ListProc is allowed,
+e.g. "hga".
+
+machine requires an @ and something after it, e.g. "hga@cren"
+
+fully_qualified requires at least one period after the @, e.g.
+"hga@cren.net"; it is the default.
+
+Note that the following two are just sets of not allowed characters,
+and period is used to mark the beginning and ending of the string:
+
+  address_illegal_local: default .()<>,;\[]" |{}@.
+
+  address_illegal_domain: default .()<>,;:\[]"' |{}.
+
+The two specify not allowed characters in the local-part (what is
+before the @, or the whole address if there is no @ and
+address_domain_required is set to no), and in the domain part (what is
+after the @).  In addition, the local part is allowed to be quoted
+(e.g. "ugly X.400 address"@isormite.org); any character other than '"'
+is allowed between the quotes.
+
+The original and still in place checks for message loops look for 3 or
+more instances of either "X-Listprocessor-Version:" or a Message-Id:
+that has already been received (I think---I don't know if this check
+really works).  An error in the Message-Id: check was fixed, so it now
+has a chance of working.  (The theory here is that a loop will include 
+at least the headers of the previous failing message, and after the
+third cycle it will get caught.)
+
+In addition, a new mechanism to immediately stop owner loops was put
+in place.  It will work as long as the Message-Id: of the outgoing
+email from ListProc was preserved in the body of the bounce message
+(I'm told Prodigy returns *nothing* useful---you probably want to set
+a max-messages-per-day limit on any list with an owner on Prodigy).
+
+While fixing the Linux line truncation bug, I improved the system
+mailmethod (STMP) code to be substantially more efficient.
+
+
+Several nasty internal core dump bugs were found while I was working
+on the code and were fixed, plus one reported one:
+
+One would likely blow up if the option in "set preferences <option>"
+was not one of the 5 allowed.  Another would cause seg faults in a
+variety of situations when .subscribers files were worked on.  A third
+would cause listproc to core dump on some platforms if it received
+a message with a Message-Id: that was a duplicate of a recent one.
+
+Bug 1078, thought to be a blowup when two To: headers---one blank---
+were found in incoming error mail, turned out to be a bug with header
+address parsing: if there were no valid useful tokens (i.e. in this
+case From: was just a () comment), it would core dump.  This might
+cause a lot of blowups with incoming SPAM mail....
+
+
+Here are some important things that were targeted for 8.2.09 but which
+were not fixed or added; the general reason was a lack of time:
+
+1083 lpmalloc infinite loop; something is wrong with serverd or the
+communications to it.
+
+1060 subfile_quicksort(): passed maximum recursion depth.  It turns
+out ListProc has it's own quicksort code, with nothing obviously
+broken or sensitive to running on an Alpha.
+
+1046b limits: max size of message (limit message nnnnn)
+
+1046c limits: split long messages (limit files nnnnn)
+
+(BTW, does anyone really like this feature?)
+
+1046e limit listname-request messages (as mentioned above).
+
+1085 Fix revdb create.  Nothing is obviously wrong with it, so for now
+continue to use the workaround script.

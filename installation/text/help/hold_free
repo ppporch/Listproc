@@ -1,0 +1,45 @@
+#! /bin/sh
+#                          @(#)hold_free	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.hold_free
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: hold <list> <password>
+        free <list> <password>
+        lock <list> <password>
+        unlock <list> <password>
+
+        "hold" and "free" suspend and resume mail distribution of the specified
+        list respectively. "free" also resets the daily message count to 0.
+
+        "lock" and "unlock" suspend the execution of requests concerning the
+        list.
+
+        If the list was held or locked by the manager, only he can release it.
+        Otherwise the owners may release it. If the list is locked by the
+        manager, list-administration requests affecting this list can be
+        issued only by him/her. Otherwise, only the owners may issue requests
+        concerning their list.
+EOF

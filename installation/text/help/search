@@ -1,0 +1,69 @@
+#! /bin/sh
+#                          @(#)search	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.search
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: search <archive | path-to-archive>] [/password] [-all] <pattern>
+
+        Search all files of the specified archive (and all of its subarchives
+        if -all is specified) for lines that match the pattern. The pattern
+        can be an egrep(1)-style regular expression with support for the
+        following additional operators: '~', if leading the regular expression
+        it reverses its meaning; '|' and '&' separate multiple regular
+        expressions (logical OR and AND); '<' '>' group regular expressions
+        (we preserve the meaning of the parentheses from ed(1), and remove the
+        meaning of < and > from ed(1) since in the ListProcessor(tm)
+        context they are either the default, or inappropriate). These can
+        be used literally by escaping them with '\'. In addition, the
+        following characters should be defined in matched pairs: (), <>, [].
+        The pattern may be enclosed in single or double quotes.
+
+        Pattern matching is case insensitive.
+
+        Certain archives may be private, and in this case you have to
+        specify a password for accessing them. The slash is required.
+        Different archives may have different passwords.
+
+        The archiving system is hierarchical. Therefore subarchives
+        may have the same names; they can be distinguished by the path
+        (the branch in the hierarchy) to them. For example, the archives
+        unix and pub/unix are distinct. 'path-to-archive' is a UNIX style
+        path (such as pub/unix) -- i.e. a '/' is used to move through the
+        branches of the hierarchy. An 'index' request always reports paths
+        to archives for your convenience.
+
+        Examples:
+
+        search listproc -all "<oranges &~apples>|.*andarin[sz]?"
+        search ilp '\|.*\|.$'
+
+        Notes:
+        - . matches ANY character including newline, so to find all lines
+          that contain a newline only, one should use '^.$' instead of '^$'
+        - If you do not quote your pattern, it will include any blanks you
+          may have appended after it by mistake, and it will not include any
+          blanks that may start the regular expression.
+EOF

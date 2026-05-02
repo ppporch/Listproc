@@ -1,0 +1,537 @@
+#-*-indented-text-*-
+#######################################################################
+#
+# Example config file for ListProc 8.2
+#
+# 			Copyright (c) 1993-1999 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+######################################################################
+#
+# Notes on file syntax:
+#
+#   * The # character is used for comments. 
+#   * An & character followed immediately by a newline continues the
+#	  command on the next line.
+#
+######################################################################
+
+
+######################################################################
+#
+#  Organizational information & required options
+#
+######################################################################
+
+
+#
+# Define your organization.  This is a simple text string that will be used
+# in ListProc's informational messages to tell users which server they 
+# are interacting with.
+#
+organization Name of Your Organization
+
+#
+# Define the ListProc's name (Used as a comment in the From: line of
+# messages from the ListProc server):
+#
+comment server "CREN ListProc(tm) Version 8.2"
+
+#
+# Define the system's manager address.  This should be the address of
+# a real person who will be responsible for maintaining the ListProc
+# server.  This user will have the power to use all of ListProc's
+# commands on all lists and archives at all times.  In addition,
+# ListProc will send any emergency warning messages to this address.
+#
+manager somebody@your.host.name
+
+#
+# Define the manager password for this installation.  The manager can
+# use this password on all ListProc commands that require a password -
+# but only when they are sending mail from their own address.  Please
+# note that this password IS case-sensitive.
+#
+password hardtoguess
+
+#
+# Define your server's email address and optional command line arguments:
+#
+server listproc@your.host.name your.host.name	# -b get
+
+#
+# Define the server daemon's (serverd) command line options.
+#
+# -i <timeout>		instructs serverd to allow interactive sessions
+#			and sets the timeout value (in seconds) for total
+#			session length
+#
+# -p <port>         	use the specified port for interactive sessions (the 
+#			default is 372); using a non-priviledged port like
+#			1800 is recommended (that way you don't have to run
+#			serverd setuid root), although then you must specify
+#			the port when you start the ilp client
+#
+# -c <max>		defines the maximum number of simultaneous 
+#			interactive sessions.  The default is unlimited
+#
+# -l <num>		instructs ListProc to stop spawning new processes
+#			(ie forking new threads) if the system load gets
+#			above the specified value
+#
+#serverd -i 1800 -p 1800 -c 10 -l 3
+
+serverd
+
+#
+# Define the user as whom ListProc should run.  This prevents
+# accidental changes to file ownership and permissions by starting
+# ListProc as root.  
+#
+user listprocuser
+
+
+#
+# Define the umask which defines the file permissions ListProc
+# uses when creating and modifying files.  Its very important for
+# security that this umask remains at either 077, 027, or 007.
+# Please recall that the following is true:
+# umask:  file permissions:    meaning:
+# 077     700                  only the user can read/write/execute the files
+# 027     750                  user=read/write/execute group=read/execute
+# 007     770                  user=read/write/execute group=read/write/execute
+# Do NOT allow "other" to have any permissions over these files for security
+# reasons (e.g. anyone who can log in can find out your list passwords)
+#
+#umask 077
+#umask 027
+
+#
+# Define the umask which will be used for the list archives.
+# This variable establishes separate file permissions for the ListProc 
+# archives directories and files. This mask affects only the archives. 
+# If you plan to allow anonymous ftp, gopher or plain-text http 
+# access to the archives, then you should use a mask of 022, otherwise, 
+# the 077 mask for archives should be sufficient.
+# umask:  file permissions:    meaning:
+# 077     700                  only the user can read/write/execute the files
+# 022     755                  user=r/w/x group=r/x other=r/x
+#
+#archives_umask 077
+#archives_umask 022
+
+
+######################################################################
+#
+#  Mail delivery options
+#
+######################################################################
+
+
+# Tell the system how to send mail. "system" is the recommended method:
+mailmethod system
+# mailmethod sendmail /usr/lib/sendmail -ba
+# mailmethod sendmail /usr/ucblib/sendmail -ba
+# mailmethod sendmail /usr/lib/sendmail -t (IDA)
+
+#
+# Define the host to connect for sending mail, and an optional port.
+# This may be a fully qualified domain name or IP address.
+# If no host is defined, "localhost" is used.  The default port is 25.
+#
+# mta_host your.host.name
+# mta_host 127.0.0.1 2000
+mta_host 127.0.0.1
+
+#
+# Set SMTP HELO argument.  Some MTA's require uses to use an
+# appropriate argument to the SMTP HELO command.  If your MTA rejects
+# messages due to a bad HELO argument, set this to the name of your
+# host.
+#
+helo_arg localhost
+
+#
+# Turn on BSD_MAIL and define the path to it.  This is sometimes used
+# by ListProc as a last-ditch mechanism for sending out emergency
+# warning messages.  Some common options are listed below.
+#
+#ucb_mail /bin/mailx
+#ucb_mail /usr/bin/mailx
+#ucb_mail /bin/Mail
+#ucb_mail /usr/ucb/Mail # Solaris
+
+
+
+######################################################################
+#
+#  Performance-related options
+#
+######################################################################
+
+
+# Tell the daemon how often to check for mail or requests (in seconds); if the
+# first arg is 0 (look for mail all the time), a sleep time can be specified
+# so that serverd will rest at the of the scan of all lists (to reduce CPU
+# usage):
+#frequency 5
+frequency 0 15
+
+# Define the maximum number of processes to be forked for list mail
+# distribution; default is 1; max is 255
+threads for_list_mail 15
+
+# Define the maximum number of processes to be forked for processing email
+# requests; default is 1; max is 255
+threads for_mail_requests 5
+
+# Tell the server how many recipients to pack together in a single message:
+multiple_recipients 30
+
+# Define global limits:
+limit message 65536	# reject messages longer than 65536 bytes (64 KB)
+limit files 65536	# split files longer than 65536 bytes (64 KB)
+
+# Define the maximum number of lines in the message id and checksum files
+# (default is 2000):
+max_file_length 2000
+
+
+
+
+######################################################################
+#
+#  General options
+#
+######################################################################
+
+#
+# Define how and where the logs should be kept.  There are several
+# options to this directive:
+#
+#  file [logfile]  Log messages are saved to the specified file.  If
+#                  no file is specified, messages are written to
+#                  "listproc.log" in the ListProc installation
+#                  directory.  This is the default.
+#
+#  individual      individual log files are kept for each ListProc
+#                  binary, with names such as ".report.PROGRAM" (where
+#                  PROGRAM is the name of the program).  Older
+#                  messages from these logs are placed in
+#                  ".rep.PROGRAM.acc" each time ListProc restarts.
+#
+#  old_style       This keeps individual log files as with the
+#                  "individual" option.  In addition, the log files
+#                  include timestamp information on the line after the
+#                  actual message.  This is available for sites that
+#                  have pre-existing utilities that parse this older
+#                  style of log file.  In general, this format is less
+#                  useful than the others, and we discourage its use.
+#
+#  syslog <FACIL>  This instructs ListProc to send log messages to the
+#                  specified syslog facility.  Common choices for the
+#                  facility are LOG_DAEMON, LOG_MAIL, LOG_USER and
+#                  LOG_LOCAL0 through LOG_LOCAL7
+#
+# Examples:
+#
+# log file /var/log/listproc
+# log syslog LOG_LOCAL7
+#
+
+# (Note: for compatibility the "syslog" config file directive can
+# still be used to specify syslog logging.  However, the "log"
+# directive should be used instead for new installations.
+
+
+
+# Tell the daemon how often to process archives and perform AFD/FUI:
+# deliver_files frequency [when]
+# deliver_files hourly 30		# Deliver hourly on the half mark
+deliver_files daily 8:30	# Deliver every day at 8:30 am
+# deliver_files weekly Monday	# Deliver every week on Mondays
+# deliver_files monthly		# Deliver the first day of every month
+
+#
+# Define the default archive directory for lists.  The default is
+# $LPDIR/archives/list-alias):
+#
+#default_arch_dir /ftp/mailing-lists
+
+# NOTE: as of May 1999 the global server is down, and it may never be
+# re-established.  So for now the following two items should remain
+# commented out.  - Harold
+
+# Define the global query server for all lists worldwide.  If you
+# don't want your server to forward requests for unknown lists,
+# comment out this line.  Otherwise, you should leave it as-is.
+#
+#global-query-server listproc@listproc.listproc.net listproc.listproc.net 372
+
+# Define the master server for collecting global list information, and
+# the time to send a list of published lists daily.  Comment this out
+# if you don't want your server to notify the global server about your
+# published lists.  Otherwise, this should be left as-is.
+#
+#global-update-server global-update-server@listproc.listproc.net 04:00
+
+# Define the contents of the Precedence: header line.
+# If not defined, no Precedence: line is added:
+#precedence bulk  # Usually bulk, junk, first-class or none
+
+# Tell the server when to batch requests:
+batch 8 20	 # batch requests between 8 am and 8 pm
+
+# Tell the server about certain restrictions:
+#restriction 4	 # certain requests may not be serviced above this # of users
+
+# If posting to newsgroups, define where inews resides.  
+# The default is /usr/lib/news/inews:
+# inews /usr/bin/inews
+
+# Define system-wide options:
+#option post_mail # Post to news; other choice is gate_mail
+option gate_mail
+#option ignore_invalid_requests	# Ignore a request if it cannot be recognized
+#option relaxed_syntax		# Ignore extra arguments to requests
+#option multiple_listprocs	# For sites running 2 or more copies
+
+# Highly recommended---a bad subscribers file can take down ListProc
+option readonly_subscribers_files # Disable PUT ... SUBSCRIBERS by owners
+
+# The following determines what kind of MIME digests are to be distributed;
+# if the option below is defined, the system sends multipart/digest MIME
+# digests where the preamble is a plain/text message and dashes are used for
+# separators according to RFC 1153 (this RFC is experimental); otherwise, the
+# default behavior is to send multipart/mixed with embedded multipart/digest
+# MIME digests; we do not recommend the definition of this option.
+#option rfc1153_compliant_digests	
+
+# Define the expiration period of confirmation cookies (in days) -- default 7:
+conf_cookie_expiration 7
+
+
+#
+# Global Filter Program allows sites to include customizable message 
+# footers, editorial notes, or other information.  This option  
+# defines the path to a default filter program.  This will be used
+# by all lists that (1) don't have their own filter program defined
+# and (2) aren't specifically configured to NOT use a filter
+# program.  The filter program can be given either a full path or a
+# path relative to the ListProc installation directory.
+#
+#global_filter_prog /path/to/program --arg1 value --arg2 value
+#global_filter_prog support/add_footer
+
+
+# Web Archive
+# Define an external program to add a message to a web archive.
+# This will be used by all lists that (1) don't have their own web
+# archive program defined and (2) aren't specifically configured
+# to NOT use a web archive program.  The filter program can be
+# given either a full path or a path relative to the ListProc
+# installation directory.
+#
+#global_web_archive_prog /path/to/lp-web/utils/add_to_archive
+
+
+
+
+
+######################################################################
+#
+#  Error mail detection and correction
+#
+######################################################################
+
+# Define blackout addresses (regular expressions):
+#
+# If you need to allow a certain address which is blacked out
+# currently, such as you wanted to allow mail from admin@machine.org,
+# then you could put this at the end of this definition:
+# 
+#	&~admin@machine.org
+# 
+# This will cause the regular expression to match everything it did
+# before EXCEPT that specific user address.
+#mailer_daemon '[ 	]*test$|^uucp|mrgate|mmdf|^smt.*|^mal@|^admin|^root|&
+#majordomo&~admin@machine.org'
+mailer_daemon '[ 	]*test$|^uucp|mrgate|mmdf|^smt.*|^mal@|^admin|^root|&
+majordomo'
+
+# Define blackout subjects (regular expressions -- notice the & continuation
+# character which is supported throughout the config file):
+#susp_subject 'remove[ 	]+me|remove[ 	]+my|&
+#delete[ 	]+me|delete[ 	]+my|add[ 	]+me|add[ 	]+my|&
+#^[ 	]*test[ 	]*$|^[ 	]*test.+ignore|please[ 	]+ignore|&
+#Confirmation[ 	]+of[ 	]+your[ 	]+message|Receipt[ 	]+Confirmation|&
+#RCPT:|Confirm:[ 	]|Important[	 ]+message[ 	]+from|&
+#Fwd:[ 	]+Workbook[ 	]+from[ 	]+all.net[ 	]+and[ 	]+Fred[ 	]+Cohen'
+
+
+# Turn on error analysis, set level and grace period (in seconds):
+# The level may be either 1 (scan for a few errors) or 9 (scan for all
+# errors).  The grace period is the number of seconds to look for 2
+# bounces.  If 2 bounces occur during the grace period, and the list
+# is auto-delete-subscribers, then the email address will be removed from
+# the list.  The example scans for all errors which occurs in 72 hours.
+#
+# note: as of 8.2.08 the grace period does not work; if you turn on
+# auto-delete-subscribers and the code works for the bounce message,
+# the user will get deleted immediately; this is expected to be fixed
+# in 8.3
+#
+error_analysis 9 259200
+# 
+
+# Override defaults for address validation for subscriptions
+#
+# Badly formatted addresses will be refused; the commented items
+# below are the defaults; uncomment and adjust as you need to.  Note
+# that these strings are delemited by periods instead of single quotes,
+# since periods are always valid characters
+#
+# the part before the @
+#address_illegal_local .()<>,;\[]" |{}@.
+#
+# the part after the @
+#address_illegal_domain .()<>,;:\[]"' |{}.
+#
+# Also, while the system defaults to requiring a "fully_qualified" domain
+# (actually, just something after the @ with at least one period), the
+# directive address_domain_required allows you to relax that with one
+# of two options:
+#
+# do not require a domain (allow local machine addresses)
+#address_domain_required no
+#
+# do not require the full domain (i.e. foo@bar, instead of foo@bar.net)
+#address_domain_required machine
+
+
+# Ignore these extra requests (regular expressions); check
+#
+# http://www.cren.net/listproc/docs/manager-faq.html#ignore_requests
+#
+# for the current version of a regex that takes care of common free mail
+# system (Hotmail, etc.) footers that look like commands.
+
+ignore_requests 'OFFICE[ 	]+MEMO|^[ 	]*-|&
+^[ 	]*[A-Z][A-Z0-9-]+:[ 	]*.*|^\>|^\]|^\||^#|^%|^\}|^\$|&
+this[ 	].+[ 	]test|please[ 	]ignore'
+
+# Sense the following requests sent to a list:
+
+sense_requests '(^[ 	]*Q?U?I?E?T?[ 	]*ADD[ 	]+([A-Z0-9.@-]+)[ 	]+.+[ 	]+.+)|&
+(^[ 	]*ALIA?S?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+.+)|&
+(^[ 	]*APPR?O?V?E?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+[0-9]+[ 	]*$)|&
+(^[ 	]*ARCH?I?V?E?[ 	]+([A-Z0-9._-]+))|&
+(^[ 	]*CONF?I?G?U?R?A?T?I?O?N?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+)|&
+(^[ 	]*Q?U?I?E?T?[ 	]*DELE?T?E?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+.+)|&
+(^[ 	]*DISC?A?R?D?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+[0-9]+[ 	]*$)|&
+(^[ 	]*EDIT[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+[A-Z]+[ 	]*.*$)|&
+(^[ 	]*FREE[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*GET[ 	]+[A-Z0-9/.-]+.+)|&
+(^[ 	]*HOLD[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*SENDM?E?[ 	]+[A-Z0-9/.-]+.+)|&
+(^[ 	]*VIEW[ 	]+[A-Z0-9/.-]+.+)|&
+(^[ 	]*HELP[ 	]*[A-Z0-9]*$)|&
+(^[ 	]*IGNO?R?E?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+.+)|&
+(^[ 	]*INDEX[ 	]*[A-Z0-9/.-]*.*)|&
+(^[ 	]*INFO?R?M?A?T?I?O?N?[ 	]*([A-Z0-9.@_-]*)[ 	]*$)|&
+(^[ 	]*INIT?I?A?L?I?Z?E?[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*NEW-L?I?S?T?[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*JOIN?[ 	]+([A-Z0-9.@_-]+).+)|&
+(^[ 	]*LIST?S?[ 	]*$)|&
+(^[ 	]*LOCK[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*PUT[ 	]+([A-Z0-9.@_-]+)[ 	]+.+)|&
+(^[ 	]*PURG?E?[ 	]+([A-Z0-9.@_-]+))|&
+(^[ 	]*RECI?P?I?E?N?T?S?[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*REVI?E?W?[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*RELE?A?S?E?[ 	]*$)|&
+(^[ 	]*VERS?I?O?N?[ 	]*$)|&
+(^[ 	]*REPO?R?T?S?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+$)|&
+(^[ 	]*RUN[ 	]+([A-Z0-9.@_-]+))|&
+(^[ 	]*SEAR?C?H?[ 	]+([A-Z0-9.@_-]+))|&
+(^[ 	]*Q?U?I?E?T?[ 	]*SET[ 	]+([A-Z0-9.@_-]+))|&
+(^[ 	]*QUER?Y?[ 	]+([A-Z0-9.@_-]+))|&
+(^[ 	]*STAT?I?S?T?I?C?S?[ 	]+([A-Z0-9.@_-]+))|&
+(^[ 	]*SYST?E?M?[ 	]+([A-Z0-9.@_-]+)[ 	]+.+[ 	]+#.+)|&
+(^[ 	]*SUBS?C?R?I?B?E?[ 	]+([A-Z0-9.@_-]*))|&
+(^[ 	]*(SUBS?C?R?I?B?E?)$)|&
+(^[ 	]*SIGN?O?F?F?[ 	]*([A-Z0-9.@_-]*))|&
+(^[ 	]*UNLOCK[ 	]+([A-Z0-9.@_-]+)[ 	]*.*$)|&
+(^[ 	]*UNSUBS?C?R?I?B?E?[ 	]*([A-Z0-9.@_-]*))|&
+(^[ 	]*SHUTDOWN[ 	]+.+$)|&
+(^[ 	]*RESTART[ 	]+.+$)|&
+(^[ 	]*EXEC?U?T?E?[ 	]+.+#.+)|&
+(^[ 	]*WHIC?H?[ 	]*$)|&
+(^[ 	]*WHICH-[ 	]*$)|&
+(^[ 	]*REMOVE[ 	]+M[EY])|&
+(^[ 	]*DELETE[ 	]+M[EY])|&
+(^[ 	]*ADD[ 	]+M[EY])|&
+(^[ 	]*PLEASE[ 	]+REMOVE[ 	]+)|&
+(^[ 	]*PLEASE[ 	]+DELETE[ 	]+)|&
+(^[ 	]*PLEASE[ 	]+U?N?SUBS?C?R?I?B?E?[ 	]+)|&
+(^[ 	]*PLEASE[ 	]+SIGN[ 	]+)|&
+(^[ 	]*PLEASE[ 	]+ADD[ 	]+)|&
+(^[ 	]*CONFIRMATION[ 	]+OF[ 	]+READING)|&
+(^[ 	]*THE[ 	]+MESSAGE[ 	]+.+SENT[ 	]+WAS[ 	]+DELIVERED)|&
+(^[ 	]*CONFIRMATION.+MESSAGE.+READ)'
+
+
+# If using the "fax" request, tell the system where to find the fax program:
+# fax /bin/fax
+
+# Define UNIX commands for list test for "run" requests.
+# The lists they refer to have to be defined beforehand, so make sure they
+# are placed in the proper place:
+#unix_cmd test pass1 dir '/bin/ls $*' #Syntax: dir [args]
+#unix_cmd test pass1 swap '/bin/echo $2 $1' #Syntax: swap <arg1> <arg2>
+#unix_cmd test pass1 who '/bin/who' #Syntax: who
+
+# Define header lines to be preserved or discarded, globally, i.e.
+# for all lists and listproc. Lines that start with ! are to be discarded.
+# Here is a list of those headers, which some mailers use, which are
+# included in this example file that should be removed from messages:
+# 
+#    Delivery-Receipt-To:   undisclosed mailer
+#    Disposition-notification-to:  Eudora Pro 4.0/4.1
+#    Disposition-Notification-To:  Microsoft Outlook 8.5, Build 4.71.2173.0
+#    Read-Receipt-To:       undisclosed mailer
+#    Read-receipt-to:       Simeon for Windows Version 4.1
+#    Return-Receipt-To:     Microsoft Exchange / Internet Mail Service
+#    Return-receipt-to:     Pegasus Mail for Win32 (v2.53/R1)
+#    X-Acknowledge-To:      undisclosed mailer
+#    X-Confirm-Reading-To:  Pegasus Mail for Win32 (v2.53/R1)
+#    X-PMrqc:               Pegasus Mail
+#    X-pmrqc:               Pegasus Mail for Win32 (v2.53/R1)
+# 
+header * {
+  !Delivery-Receipt-To:
+  !Disposition-[N,n]otification-[T,t]o:
+  !Pmrc:
+  !Registered-Mail-Reply-Requested-By:
+  !Read-[R,r]eceipt-[T,t]o:
+  !Return-[R,r]eceipt-[T,t]o:
+  !X-Acknowledge-To:
+  !X-Confirm-[R,r]eading-[T,t]o:
+  !X-Phone:
+  !X-[P,p][M,m]rqc:
+}
+
+# Tell the server which header lines to preserve from the sender's message
+# Can use regular expressions (.+ preserves unknown headers):
+# header test {
+#   PEM-.+:
+#   .+:
+# }
+
+# --- LISTS ARE DEFINED BELOW --- DO NOT REMOVE THIS LINE ---
+# Define local lists below (automatically done by the system -- no user
+# intervention required) and optional command line arguments:
+# list test test@cren.net	# -D -e

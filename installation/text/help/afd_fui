@@ -1,0 +1,84 @@
+#! /bin/sh
+#  			@(#)afd_fui	6.2 CREN 98/03/03
+# 
+# 			Copyright (c) 1993-98 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.afd_fui
+#
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: afd <action> {<archive> [/password] [files]} [{<archive> [/password] [files]}]
+        fui <action> {<archive> [/password] [files]} [{<archive> [/password] [files]}]
+
+        Automatic File Delivery (AFD) and File Update Information (FUI).
+        Add/delete yourself or other addresses to archives and files, and be
+        notified when these files are updated. "action" can be: add, delete
+        or query. Only the manager may manipulate other addresses and he need
+        not specify archive passwords if issuing these requests via ilp.
+        The system-wide password may be used if sending email. User addresses
+        may be listed after the archive specification(s).
+
+        AFD ADD will add your address to the specified file(s) of the specified
+        archives notify lists, and when these files are updated a copy will
+        be sent to you. You may add yourself to an archive only instead of
+        specified files, and you will be sent any updated files from that
+        archive.
+
+        AFD DELETE will delete your address from the notify lists of the
+        specified archives an/or files.
+
+        AFD QUERY will tell you which archives and/or files you have subscribed
+        to.
+
+        FUI is similar to AFD, but instead you are notified when a file is
+        updated, instead of being sent a new copy of the file.
+
+        Examples, regular user:
+
+                afd add { doc /pass1 ref.ps user.ps } { cooking }
+
+        This will add your address to archive cooking's notify list and
+        you will be sent files (recipes) as updated, and to archive doc's
+        notify list, but only for files "ref.ps" and "user.ps" -- any other
+        files updated will not be sent to you. This example assumes that doc
+        is a private archive protected by password "pass1".
+
+                afd delete { doc ref.ps }
+
+        This will remove your address from archive doc's notify list for file
+        ref.ps.
+
+                fui query { doc }
+
+        This will return you a list of files you are subscribed to in archive
+        doc.
+
+        Examples, manager:
+
+                quiet fui add { listproc } foo@bar.com user@foo.com
+
+        This will add the two addresses to listproc's notify list, but
+        will not send an acknowledgement to them.
+
+                fui review { listproc file1 } { cooking }
+
+        Get a list of users subscribed to the specified archives/files.
+EOF

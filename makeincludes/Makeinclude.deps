@@ -1,0 +1,23 @@
+
+#
+# Rule to create dependancy files
+#	if [ "$$dir" != "." ]; then \
+
+%.d: %.c
+	@echo "" > $@.tmp
+	dir=`dirname $@`; \
+	if [ "$$dir" != "." ]; then \
+		echo $(ECHO_N) "$$dir/$(ECHO_C)" >> $@.tmp; \
+	fi
+	$(SHELL) -ec '$(CC) -MM $(CFLAGS) $< | sed '\''s!$*\\.o[ :]*!& $@!g'\'' \
+		>> $@.tmp'
+	@echo '	@echo making $$@ ' >> $@.tmp
+	@echo '	$$(CC) $$(CFLAGS) $$< -o $$@' >> $@.tmp
+	@sed 's!$(DBDIR)!$$(DBDIR)!g' < $@.tmp > $@.tmp2;
+	@sed 's!$(SRCDIR)!$$(SRCDIR)!g' < $@.tmp2 > $@;
+	@rm $@.tmp $@.tmp2
+	@echo '' >> $@
+
+
+
+

@@ -1,0 +1,126 @@
+.\" 
+.\"  			@(#)serverd.1	6.2 CREN 97/01/14
+.\" 
+.\" 			Copyright (c) 1993-97 by
+.\" 	the Corporation for Research and Educational Networking (CREN)
+.\" 
+.\" All rights reserved. This software comprises confidential
+.\" information of CREN and may not be used, copied or made available to anyone,
+.\" except in accordance with the license under which it is furnished.
+.\" 
+.\" SCCS file: /usr/SCCS/home/server/listproc/distrib/doc/s.serverd.1
+.\" 
+.\" 
+.\" ListProcessor(tm) System
+.\" Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)
+.\"
+.TH serverd 1 "ListProcessor(tm)"
+.SH NAME
+\fBserverd\fP \- ListProcessor(tm) system daemon
+.SH SYNOPSIS
+\fBserverd\fP [\fB-1\fP] [\fB-e\fP] [\fB-l load\fP] [\fB-i idle\fP] [\fB-p port\fP] [\fB-c max-connections\fP]
+.SH DESCRIPTION
+\fIserverd\fP silently looks for any new messages for the request
+server and for any of the supported mailing lists, checks whether
+the time has arrived for processing the batch queue, whether
+digest time has been reached for the various lists, and whether any
+live TCP/IP connections are requested. It then spawns
+\fIlistproc\fP(1) and/or \fIlist\fP(1) as necessary, and sleeps until the
+message(s) is (are) processed. \fIserverd\fP reads the \fIconfig\fP file
+(see \fIserver\fP(1)).
+.SH OPTIONS
+The following command line options are recognized:
+.TP
+-1
+Execute only once -- to be used with cron(1).
+.TP
+-e
+Echo reports to the screen; it has no effect if the system is using
+syslog(3).
+.TP
+-l load
+Enforce load restrictions; \fIserverd\fP will postpone spawning if the
+system load is above the limit specified.
+.TP
+-i idle
+A child process is also spawned which listens for live TCP/IP connections
+at port 372 (this is referred to as the Listener process, and its parent as
+the Master); for each such connection a child process is created to
+process the live requests (see the INTERACTIVE\ LISTPROC section below). The
+maximum \fIidle\fP time is given in seconds. All requests (including 
+a mere newline) except \fItimeleft\fP reset the clock.
+.TP
+-p port
+Specify another port to listen to. If greater than 1024, \fIserverd\fP does
+not need to be setuid root.
+.TP
+-c max-connections
+Specify the maximum number of live connections. Default is 5.
+.SH INTERACTIVE\ LISTPROC
+Provided that the host supports the TCP/IP protocol, the system provides
+a mechanism for processing live requests by specifying the -i flag to
+\fIserverd\fP. Any user may use \fItelnet\fP(1) to connect to a host
+that runs this system at port number 372 (or as specified by -p), issue
+requests as he would
+by email, and receive responses immediately. However, the proper way
+to connect to the server is by using \fIilp\fP(1), \fIxilp\fP(1), \fIwilp\fP(1),
+or any of the other clients provided which let the user download
+files through \fIget\fP requests, and provide other amenities as well.
+.PP
+What requests are allowed
+depends on the privileges assigned upon login: the user is asked for
+an email address (default is no email address); then a password should be
+provided. 
+.PP
+If the user needs manager privileges, he has to provide both the
+manager's email address and the system's password as they appear in the
+\fIconfig\fP file.
+.PP
+If he wishes owner privileges, he has to provide both
+his email address as it appears in the \fIowners\fP file and his list's
+password as it appears in the list's \fIconfig\fP file. 
+.PP
+To gain subscriber privileges
+he has to provide his email address as subscribed to the list where privileges
+are to be granted to, as well as the password \fIset\fP for that list.
+.PP
+A mismatch or no email address reduces privileges to a minimum.
+.PP
+Requests for remote lists are serviced by attempting to connect to the
+remote servers serving these lists.
+.PP
+The system may restrict connections to certain hosts, and/or reject connections
+from certain hosts. First, the system looks for the file \fIpriv.hosts\fP
+which lists hostnames and/or IP addresses that are allowed access; only
+hosts listed in this file are granted acces. For example, to allow access to
+hosts on one's local network only, one could do:
+.sp
+.ce
+ln -s /etc/hosts LPDIR/priv.hosts
+.sp
+Next, the file \fIunwanted.hosts\fP is looked up, and connections from hosts
+listed in it are rejected. Regular expressions may be used in both files.
+.sp
+The duration of each connection is basically unlimited, but the argument to
+the -i flag specifies an idle timeout. Moreover, all connections one day
+or older are candidates for preemption if and when a connection is requested
+and all ports are busy; in that case, an old connection will be timed out
+and the new one will be accepted. The idle timeout is reset upon every
+request sent, even a newline, except \fItimeleft\fP. If the manager wishes
+to preempt a live process (i.e. kill it) he/she should send the process
+a USR1 signal. Operation of the system is serialized via a semaphore.
+.PP
+To set up your system to accept such connections, the following line has to
+be inserted into your host's /etc/services file:
+.sp
+.ce
+ulistproc   372/tcp
+.sp
+This port is privileged, therefore \fIserverd\fP has to be started with
+root privileges (the \fIsetup\fP script takes care of this). If you do not
+have root access you may specify another port number above 1024, via the
+-p flag.
+.SH SEE\ ALSO
+ilp(1), xilp(1), wilp(1), list(1), listproc(1), queue(1), server(1)
+.SH COPYRIGHT
+Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)

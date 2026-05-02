@@ -1,0 +1,101 @@
+#! /bin/sh
+#                          @(#)set	6.5 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: [quiet] set <list> [<option> [arg[s]]] [for [address(es)]]
+        [quiet] query <list> [for [address(es)]]
+
+        Without the optional arguments, get a list of all current settings for
+        the specified list. Otherwise change the option to the new value for
+        that list (or the list default if no value specified), as follows:
+
+        option can be: mail, password, address, conceal, preference
+        arg for mail can be: ack, noack, postpone, digest or blank
+        args for password have to be: current-password new-password or blank
+        args for address have to be: current-password new-address or blank
+        args for conceal can be: yes, no or blank
+        args for preference can be: none or one or more of the following:
+        CCSET, CCSUBSCRIBE, CCUNSUBSCRIBE, CCRECIPIENTS, CCINFORMATION,
+        CCSTATISTICS, CCPRIVATE, CCRUN, CCIGNORE, CCERRORS, CCALL or ""
+
+        set <list>: get the current option settings for the list
+        query <list>: get the current option settings for the list
+        set <list> mail: set your mail mode to the list default.
+        set <list> mail ack: your message is sent back to you.
+        set <list> mail noack: your message is not sent back to you.
+        set <list> mail postpone: no messages will be sent to you until you
+                change mode again.
+        set <list> mail digest
+			    AND
+        set <list> mail digest-mime:
+                New messages are not sent to you as they arrive, but
+                are accumulated into digests that are periodically
+                sent to you.  The accumulated digests are sent as
+                multi-part MIME documents, with each list message in a
+                seperate subpart.  (On some mail readers, these may
+                appear as seperate attachments.)
+        set <list> mail digest-nomime:
+                New messages are not sent to you as they arrive, but
+                are accumulated into digests that are periodically
+                sent to you.  Unlike the digest and digest-mime
+                options, digest-nomime indicates the digest should be
+                sent to you as one large message composed of the
+                bodies of the individual list messages.  On some mail
+                readers this may be simpler to read than the
+                digest-mime format, but it will not preserve
+                formatting from the original messages such as
+                character set or attachment information.
+        set <list> password <current-password>: change your password to the
+                list default.
+        set <list> password <current-password> <new-password>: change your
+                password for live access to the system (i.e. for subscriber
+                access privileges when telneting to the system).
+        set <list> address <current-password> <new-address>: change the address
+                you are subscribed with; may not be available on all lists.
+        set <list> conceal: set your conceal mode to the list default
+        set <list> conceal yes: remove yourself from 'recipients' and
+                'statistics' listings.
+        set <list> conceal no: opposite of previous mode.
+
+        Owners may specify other addresses for which these changes are to be
+        made with the FOR keyword, followed by one or more addresses. Notice
+        that these new address will be notified, unless done QUIETly.
+
+        If regular subscribers wish to alter settings for other users they may
+        do so with the FOR keyword, if the list allows commands to be executed
+        for alternate addresses -- the affected users will be sent a
+        confirmation request in order for these changes to take effect.
+
+        Owners may specify whether they wish to get copied on various requests
+        by using the 'preference' keyword, followed by "" (to remove all
+        preferences) or a subset of the options described above. These
+        options may be preceded by a minus sign to remove that functionality.
+        For example:
+
+                set <list> preference CCALL -CCUNSUBSCRIBE
+
+        will copy on all requests except "unsubscribe"
+EOF

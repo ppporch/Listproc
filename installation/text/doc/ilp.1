@@ -1,0 +1,159 @@
+.\" 
+.\"  			@(#)ilp.1	6.2 CREN 97/01/14
+.\" 
+.\" 			Copyright (c) 1993-97 by
+.\" 	the Corporation for Research and Educational Networking (CREN)
+.\" 
+.\" All rights reserved. This software comprises confidential
+.\" information of CREN and may not be used, copied or made available to anyone,
+.\" except in accordance with the license under which it is furnished.
+.\" 
+.\" SCCS file: /usr/SCCS/home/server/listproc/distrib/doc/s.ilp.1
+.\" 
+.\" 
+.\" ListProcessor(tm) System
+.\" Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)
+.\"
+.TH ilp 1 "ILP 3.2"
+.SH NAME
+\fBilp\fP \- Interactive ListProcessor(tm) client
+.SH SYNOPSIS
+\fBilp\fP [\fB-V\fP] [\fB-v\fP] [\fB-t timeout\fP] [\fB-b buffer-size in K\fP] \fBhost\fP [\fBport\fP]
+.SH DESCRIPTION
+\fIilp\fP is a client that connects to the specified \fIhost\fP's
+Interactive ListProcessor(tm) port (372) for a live session -- i.e. for
+processing requests live. Another \fIport\fP
+may be specified if necessary. The \fIhost\fP may be a host name, or an 
+IP address.
+.PP
+Upon connection establishment, the protocol attempts to set the user's
+privileges during the session by requesting an email address and a password.
+These are used to determine whether the user is to be granted system,
+owner, subscriber or casual user privileges. If the user provides
+his owner email address and his list's password, he will be granted
+owner privileges. If he provides an email address that he uses for subscription
+to a list, along with the password he uses for that list, he will be granted
+subscriber privileges. The system provides a brief listing of all valid
+requests the user may issue during the session. If no email address is
+provided, or no matches are found, the user is restricted to a few
+requests.
+.PP
+Requests for remote lists are serviced by attempting to connect
+to the ILP server(s) (if any) of the system(s) that handle those lists.
+.PP
+The ILP server recognizes the following special requests:
+.TP
+quit/exit
+End the session.
+.TP
+?/privileges
+Get a brief listing of all valid requests.
+.TP
+timeleft
+Prints the remaining time in seconds.
+.TP
+&<new-line>
+Input continues on the next line.
+.TP
+binary
+Switch to binary mode when transferring files.
+.TP
+ascii
+Switch to ASCII mode when transferring files.
+.TP
+< filename
+Input is taken from the specified file. Each line will be interpreted as
+a separate request, unless the file is specified in conjunction with a
+\fIput\fP request. If the '<' is to be used literally it
+must be escaped with '\\' or enclosed in quotes.
+.TP
+> filename
+Redirect the reply to the request to the specified file. Error messages
+(such as rejections due to invalid requests, etc.) are not redirected.
+When a file is downloaded via a \fIget\fP request, this will override the
+file name that will be saved under. If the '>' is to be used literally it
+must be escaped with \\ or enclosed in quotes.
+.TP
+>> filename
+Same as above, but the reply is appended to the specified file.
+.TP
+| prog [args]
+The output of the request is piped to \fIprog\fP; this is similar to a 
+UNIX pipe. \fIprog\fP may be any valid UNIX command, including other pipes, file
+redirections, etc. Since '<' has higher precedence in this context, you
+should escape any '<' characters intended to be used by the pipe, otherwise
+the system will assume you are feeding it batched requests. Quotes may also
+be used to protect these characters.
+.SH OPTIONS
+The following options are recognized:
+.TP
+-V
+Print version information and exit.
+.TP
+-v
+Turn verbose mode on; the server reply codes are echoed along with
+predetermined messages.
+.TP
+-t timeout
+The default time out for a server response is 180 seconds; to reset
+use the -t flag. This timeout should not be confused with the
+remaining time of a connection.
+.TP
+-b buffer-size
+The default socket buffer size is 8K; to reset use the -b flag
+(the argument specifies kilobytes).
+
+.SH USER\ PRIVILEGES
+Casual users may only issue help, information, recipients and statistics
+for nonprivate lists, lists, index, get, view, search and release requests.
+Subscriber privileges also include the set, run, unsubscribe and which requests.
+Owners may, in addition, issue all of their administrative requests.
+.PP
+Issue a 'help live' request when you first connect to an ILP server.
+.SH RESTRICTIONS
+The server imposes an idle timeout upon connection. Any request (including
+a mere newline) except \fItimeleft\fP reset the clock.
+A connection will not be broken during a transfer.
+.SH EXAMPLES
+.nf
+request> put ermis ermis1 subscribers </usr/server/backup/lists/ERMIS/subs >out
+.sp
+request> get listproc example.dat 1 3 >> out
+.sp
+request> get listproc example.dat
+.sp
+request> index ilp > ILP
+.sp
+request> < /tmp/batched.requests
+.sp
+request> index | more
+.sp
+request> lists | cut -d ' ' -f1,2 | more
+.sp
+request> search ilp "\\>\\> out"
+.sp
+.fi
+In this last example, we escape each > to protect it from being interpreted
+as a regular expression separator, and enclose the whole pattern in quotes
+to protect the \\>\\> from being evaluated.
+.SH FILES
+.TP
+ilp.c, ilp.h
+Source code for the client. See ilp.c for compile options.
+.TP
+ilpp.h
+Definition of the Interactive ListProcessor(tm) Protocol.
+.TP
+makefile
+makefile to build \fIilp\fP. \fIilp\fP is written with BSD-style signal
+handling, therefore on some hosts (like IBM AIX) you will have to link with
+BSD versions of signal(2), socket(3N), and fcntl(2). Platforms that
+have the <sys/select.h> and <ulimit.h> header files should compile
+with -DHAVE_SELECT_H and/or -DHAVE_ULIMIT_H. SCO ports should compile with
+-Dsco. Always link with libraries that provide DNS support (resolver linked
+in).
+.SH CHANGES
+Starting with version 3.1, users are no longer required to escape certain
+characters in the body of PUT and ARCHIVE requests.
+.SH COPYRIGHT
+Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)

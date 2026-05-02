@@ -1,0 +1,56 @@
+# 
+#           @(#)welcome.live    6.5 CREN 97/03/12
+# 
+#           Copyright (c) 1993-97 by
+#   the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/s.welcome.live
+#
+
+# Sample welcome.live file. The contents of this file are copied upon
+# Internet connection establishment.
+
+Welcome!
+
+*****************************************************
+*                                                   *
+*               ListProcessor(tm) 8.2               *
+*           New Features for faster login           *
+*                   PLEASE READ                     *
+*                                                   *
+*****************************************************
+
+The set of requests you may issue during this session depends on the privileges
+assigned by the system. You may log in as a:
+
+- Subscriber: provide your email address and password as subscribed to one of
+  the local lists. The system will look you up on all local lists until a
+  match is found. To speed up the process you may provide a mailing list name
+  you know you belong to (and for which the password you will provide) by
+  appending the list name after your email address, separating the two with a
+  single space. Example:
+
+email address [none]: foo@listproc.net cren-listproc
+
+- Moderators, subscription managers, errors-to recipients: provide your email
+  address and your list's administrative password. The system will look you up
+  on all local lists until a match is found. To speed up the process you may
+  provide a mailing list name you know you have administrative privileges for
+  (and for which the administrative password you will provide) by appending
+  the list name after your email address, separating the two with a single
+  space. Example:
+
+email address [none]: bar@listproc.net cren-listproc
+
+- Owner: simply provide your email address and your list's administrative
+  password. There is no need to append a list name to your email address; owner
+  look ups are very fast.
+
+- Manager: provide your email address and the system's password.
+
+- Other: simply hit return at the prompt below.
+

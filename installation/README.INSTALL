@@ -1,0 +1,568 @@
+		   README.INSTALL for ListProc 8.2
+
+Somewhat out of date documentation (which we are working on), plus
+release notes, are available on CREN's website:
+
+Main ListProc page: http://www.cren.net/listproc/index.html
+
+Documentation: http://www.cren.net/listproc/docs/index.html
+
+Tech Support: http://www.cren.net/listproc/tech.html
+
+If you haven't already subscribed to the CREN-LISTPROC list you
+ought to visit the Tech Support page to find out how to sign up.
+
+You will want to download a copy of the 8.0 Site Reference manual, and
+read the release notes from 8.0 to 8.2, but please ignore the
+instructions in the 8.0 Site Reference manual for installing ListProc
+and follow the ones below:
+
+
+	       Instructions for Installing ListProc 8.2
+
+Note that these instructions assume you are making a new, "fresh"
+installation, or upgrading from a previous version after 6.0c.  If you
+are upgrading from 6.0c, please unpack the distribution as detailed in
+section B.5 below, and then follow the directions in the file
+6.0c-to-8.2.txt instead of this set of directions.  This file can also
+be found at:
+
+	http://www.cren.net/listproc/docs/6.0c-to-8.2.txt
+
+
+A) Setting up ListProc for the first time (a new installation):
+
+
+A.1) Read Section 3, Planning your ListProc site, of the 8.0 Site
+Reference manual, while noting the following:
+
+The semset utility is obsolete with version 8.2.
+
+Ignore the list of required Unix utilities; version 8.2 has most of
+the necessary functionality built in.  You will need zcat to run the
+installation script.
+
+The critical parts of this Section of the Site Reference manual are:
+
+  MTA
+
+  In order for ListProc to receive mail properly, your machine must have
+  a working Mail Transfer Agent (MTA) that allows the execution of
+  commands from its aliases file.
+
+  Root Access
+
+  In order to add the appropriate mail aliases, you will need to have
+  access to the root account on your ListProc server machine.
+  Additionally, if you want to allow Interactive ListProc connections to
+  the default port (372), you will need to specify the root password
+  when using the setup script to install ListProc.
+
+A.2) Setup server account, alias, etc.:
+
+Now do the following from the Site Reference manual (this is slightly
+edited from Section 4.1):
+
+  1)  Create the "server" account
+
+  The first step is to create an account on your system for the ListProc
+  server.  By convention, this account is called "server".  This account
+  will contain the ListProc binaries and data files.  Most importantly,
+  a separate server account allows effective access control for
+  ListProc's sensitive data files.  The exact procedure involved in
+  creating the server account will depend on your system.  Consult your
+  system documentation for information on how to create user accounts.
+
+After creating the account, it is a good idea to also set up in its
+shell's initilization files the environment variable LPDIR, to refer
+to the home directory of the server account; see B.8) below for details.
+
+Now is also a good time to do the following from Section 4.1 of the
+Site Reference manual:
+
+  5)  Setup the system mail alias
+
+  In order for your ListProc server to receive and process mail, you
+  must set up a system-wide alias for it.  The aliases file is usually
+  /etc/aliases or /etc/mail/aliases, although it can reside in other
+  places as well.  (Note: root access will be needed to modify the
+  aliases file.)  The server alias is a pipe to a process called
+  catmail.  (A detailed description of catmail is provided in section
+  13.1 on page 82.)  The server alias should be as follows:
+
+  ListProc: "|/LPDIR/catmail -r -f"
+
+  Note that "LPDIR" should be replaced with the full path name to your
+  ListProc installation directory.  For example, if ListProc is
+  installed in the /home/server directory, your aliases file should
+  contain the following line:
+
+  ListProc: "|/home/server/catmail -r -f"
+
+  Do not forget to run your system's newaliases command to rebuild
+  the alias database after you edit the aliases file.  Note: your mailer
+  must allow you to launch programs.
+
+  As a security precaution, some versions of sendmail do not allow
+  programs to be executed by the mailer.  They implement this via some
+  form of restricted shell.  It is important that you or your sysadmin
+  familiarize yourself with your particular implementation.  A detailed
+  explanation of mailers is beyond the scope of this manual.  For
+  sendmail documentation, see sendmail by Bryan Costales with Eric
+  Allman and Neil Rickert.
+
+A simple script to put in your restricted shell directory that calls
+catmail indirectly is:
+
+--SCRIPT BEGIN--
+#!/bin/sh
+cat - | <substitute LPDIR here>/catmail $*
+exit 0
+--SCRIPT END--
+
+In this case, have the listproc aliases call the script, and the
+script will call catmail.  If your system is not delivering email to
+ListProc (you don't see catmail in the ListProc log after creating
+aliases and sending it email) you'll need to look in your MTA's logfiles
+and figure out if this or some other problem is preventing catmail
+from being called.
+
+
+A.3) You should ignore everything else in Section 4 of the Site
+Reference manual and instead follow the instructions below, ignoring
+any section that starts with "If upgrading":
+
+
+B) Instructions for installing ListProc:
+
+IMPORTANT: You should do the following setup logged in as the standard
+account for ListProc.
+
+
+B.1) Make sure you have the necessary support files on your system
+
+These include zcat, and tar.
+
+
+B.2) If upgrading from version 7, force partial digests
+
+The format of list digests has changed slightly between ListProc
+versions 7 and 8.  To make sure the first digests aren't saved with
+incorrect formats, you should force ListProc to send out all existing
+partial digests before starting ListProc 8.2.
+
+First turn off ListProc; while logged in to the server account and in
+the home directory of that account, issue the following command:
+
+   ./start -k
+
+And answer "Y" to each prompt to kill the existing server processes.
+
+(Note: the following HAS NOT BEEN TESTED to the point of actually
+running the list program, but ought to work.  At the very least, be
+sure to shutdown ListProc at this point.):
+
+--SCRIPT BEGIN--
+#!/bin/csh
+
+foreach list ( lists/* )
+  ./list -1 -d -L $list:t
+end
+--SCRIPT END--
+
+Copy the lines between --SCRIPT BEGIN-- and --SCRIPT END-- into a file
+named, say, forced, place in LPDIR, change the mode to make it
+executable:
+
+   chmod 500 forced
+
+and then execute it logged in as the ListProc user:
+
+   ./forced
+
+
+B.3) If upgrading, stop incoming mail to your server machine
+
+While you are upgrading ListProc, there will be a short period of time
+during which the file permissions on catmail will not be set
+correctly, and the new catmail may fail if it tries to use an old
+config file.  This would cause incoming list and server mail to bounce
+with an "unknown mailer" or similar error, or possibly losing list
+mail without warning.  To prevent this, it is a good idea to set up
+your system to return a more friendly error that will cause the sender
+to simply re-queue the mail for later delivery.
+
+The best way to solve this problem is to simply stop your SMTP server
+(i.e. sendmail).  This will interrupt all mail to and from your site.
+No incoming mail will be lost, however, since sites trying to send you
+mail will simply queue it for later delivery.  Consult your system
+documentation for information on how to stop your SMTP server.
+
+
+B.4) If upgrading, backup your existing server tree!
+
+Although the upgrade procedure is designed to be non-destructive, it
+is ALWAYS a good idea to make a backup of your current system before
+proceeding.
+
+If you have not already shut down ListProc as described above, do it
+now.
+
+Then use your favorite means to take a snapshot of the directory tree.
+E.g., from the ListProc home directory:
+
+   tar cf - . | gzip -c > a-file-on-a-filesystem-with-enough-room
+
+or tar cf - . | compress -c > a-file-on-a-filesystem-with-enough-room
+
+or use cpio, or tar or cpio straight to a tape drive, or use your
+normal backup system if you really trust it....
+
+
+B.5) Unpack the distribution files
+
+The ListProc distribution files come in a tar archive, which contains
+two compressed tar archives and two scripts, plus informational files
+such as this one.  The file will be named something like
+
+	lp8.2.09.sparc-solaris2-7.990812-1924.tar
+
+e.g. ListProc version 8.2.09, for Solaris 7 or higher, created on
+1999/08/12 at 7:24pm.
+
+Unpackage the files which came in the distribution into a temporary
+directory somewhere (NOT in LPDIR---if you are upgrading, your config
+file would get overwritten), e.g.:
+
+   tar xvf wherever-the-file-is-located/lp82*.tar
+
+You should now have nine files:
+
+README.INSTALL: this file
+
+6.0c-to-8.2.txt: the instructions for doing an upgrade from version
+6.0c; follow them instead of the ones in README.INSTALL if you are
+doing an upgrade from 6.0c.
+
+RELEASE-NOTES: release notes for this version of ListProc.
+
+CHANGES: a list of changes to the sources, text files, etc.
+
+text.<a timestamp in the form of 980512-1439>.tar.Z: this archive
+contains the ListProc text files that are the same for all the
+different versions of Unix.
+
+install.listproc: a shell script that is designed to unpack the files
+in src.tar safely and to correctly reinstall over a previous version.
+
+install.funcs: a small shell script that does some semi-optional
+installation functions for install.listproc.  You can run it
+separately later; you will need to know the root password to run it.
+
+sample_init.d: A System V Release 4 (SVR4, e.g. Solaris) script for
+automatically starting and stopping ListProc on boot and shutdown.
+
+And an archive something like bins.sparc-solaris2-7.990812-1924.tar.Z,
+which contains the binaries for your particular version of Unix.
+
+
+B.6)  Run the installation script
+
+Logged in as your ListProc user account, run install.listproc from the
+command prompt to finish unpacking the distribution files:
+
+   ./listproc.install
+
+This setup script does a number of things after doing some sanity
+checks.  First, if the LPDIR environment variable is set (it defines
+the directory from which ListProc runs, and is critical in version 8),
+it copies all of the distribution files to the directory specified;
+otherwise, it prompts you for the correct directory (make *sure* to
+set LPDIR later, as described below).
+
+Then it checks for the existence of an executable "serverd" binary to
+see if it is doing an upgrade (if it doesn't find serverd, or if it's
+not executable, it will overwrite an old installation rather than
+upgrade). 
+
+If you you are doing an upgrade, you should see the following message:
+
+  It appears that you are upgrading from a previous version of ListProc.
+
+if you see this message instead:
+
+  I don't see the standard ListProc binaries in $LPDIR
+  so I will assume this is a new installation.  This means I will NOT
+  try to save any old files in this directory.  
+
+You should be doing a new installation; if you are doing an upgrade,
+do not proceed; hit ^C or whatever is your interrupt character.
+
+If you are doing new installation, follow the script directions,
+and then skip to section B.7 below.
+
+If you are doing an upgrade, the script will proceed like this:
+
+The install script will kill existing ListProc processes if you have
+not done so already.
+
+It will then say:
+
+  I now will save your old binaries and configuration files so you can
+  easily revert to your current version if there are any problems with
+  this installation.
+
+Do not worry too much if there are problems with this phase---you
+*did* do a backup of the whole directory tree before starting the
+upgrade (after stopping ListProc and your mailer), didn't you?
+
+It will save critical config and binary files to lp-save*.tar; expect an
+error message from tar if you're upgrading from a version before 8.2.09:
+
+  tar: debug: No such file or directory
+
+Debug is a directory containing unstripped binaries which is new with
+8.2.09.
+
+It then renames critical directories and config files by adding "O"
+to the beginning, unpacks the binary and text archive files, renames
+the new versions of the critical items by adding "N" to the beginning,
+and then restores the original critical items by removing the O..
+
+I.e. your old directories and config files will keep their names, and
+the new default config files and directories supplied in the
+distribution will be named N<name>; you will need to use these as a
+guide to updating your config files, as described below.  It will then
+tell you:
+
+  Your original files have been restored.  After the installation, you
+  should examine the new versions of these files and directories to see
+  if there are any changes you would like to use.  If you want to use
+  one of the newer versions you will have to manually remove the old
+  version and rename the new version to the correct filename.
+
+Then it modifies directory paths for ListProc specific archive files
+for this release in Narchive; you should integrate some or all of
+these new archives into your current archive directory.
+
+Then it ensures that the file permissions are properly set for each of
+the system binaries by explicitly setting them.  In particular, it
+will set the "setuid" bit for both catmail and serverd.  Setup also
+gives you the opportunity to have serverd owned by root, if you want
+to allow ILP connections to a privileged port (a port equal to or
+below 1024; 372 is the default), and know the root password.
+
+If you are upgrading from a version prior to 8.2, it will now say:
+
+  I will now generate the reverse lookup database for your installation.
+  Please note that for large sites this may take a while!
+
+If this fails, it is likely that the configuration information is not
+in the right format, and revdb should error out harmlessly (reporting
+errors in listproc.log); fix the config file as described below in
+section B.8, and then try "revdeb create" again.
+
+Or if you have more than a few lists revdb will likely core dump; use
+
+  http://www.cren.net/ftp/software/lp_utils/revdb_update_all1
+
+to work around this problem, or if you need to rebuild the db.
+
+
+B.7)  Set the system environment variables
+
+ListProc 8.2 looks at several environment variables in order to
+determine aspects of its behavior.  LPDIR is the only one you *must*
+set.
+
+LPDIR 
+
+  This variable defines the default directory for ListProc.  All of
+  the main server programs use this environment variable to determine
+  where to find ListProc's data files and auxiliary commands.  Hence,
+  it is essential that this environment variable be set correctly if
+  the server is to run correctly.
+
+ULISTPROC_ACCOUNTING_PROGRAM
+
+  This optional environment variable specifies the path to an
+  accounting program to be used each time messages are sent out from
+  ListProc.  The arguments passed to the accounting program are as
+  follows:
+
+  1. --list
+  2. the-list-alias
+  3. --file
+  4. the-messagefile
+
+  5. one of the following; the comments in parens "()" explain the
+     transaction type and how to interpret argument 6:
+
+     --regsub        ( regular mail recipients )
+     --digest-mime   ( a digest in mime-format )
+     --digest-nomime ( a digest not in mime-format )
+     --news          ( posting to the news system )
+     --peer          ( mail to peer recipients )
+
+  6. the number of items of the above type that have been done
+     (e.g. number of recipients for --regsub )
+
+
+To ensure that all of the appropriate environment variables are set
+properly each time you start the system, you should set them in your
+server account's shell's initialization file.  The commands in this
+file will be executed each time you log in to the server account.  If
+you use su to change to the server account, make sure you use the "-"
+argument as below:
+
+   su - server
+
+This will ensure that the shell is a login shell, and hence that the
+shell initialization files will be read.
+
+The name of the shell initialization file and the specific commands
+you should use depend on the type of shell you use for the server
+account.  Examples for the two most common shell families are listed
+below:
+
+The C-shell
+
+If you are using a variant of the the C-shell (csh, and tcsh), the
+shell initialization file used is .cshrc.  You should add the
+following lines to the .cshrc file in the server's home directory.
+(If there is no .cshrc, you should create one, incorporating the
+default one for your system.)
+
+   setenv LPDIR the-path-to-the-server-directory
+
+   unalias ls rm (etc.)
+
+(You could place this in the .login file instead, but .cshrc is a
+little safer.)
+
+The Bourne Shell
+
+If you are using a variant of the Bourne shell (sh, bash, ksh, zsh,
+ash, etc.), you should add the following lines to the .profile file in
+the server's home directory:
+
+   LPDIR=path-to-ListProc-home-directory;  export LPDIR
+
+
+B.8) Configuration files
+
+If you are upgrading, follow the directions below.  If you are doing a
+new installation customize the top level config file as described in
+Section 5 of the 8.0 Site Reference manual, and check the release
+notes from 8.1 on up for new config file directives.  Be sure to
+make the "manager" a user/email address other than the ListProc user;
+ListProc will refuse to accept commands if they are the same.
+
+Also, ignore the 8.0 Site Reference section on the threads directive;
+instead, follow the comments in the config file (as a general rule, if
+the supplied config file and the documentation conflict, believe the
+config file).  Also note that at this time some new features are
+documented only in the supplied config file.
+
+You will also want to change the entry in the owners file for the
+ListProc site manager (see the comments in $LPDIR/owners).
+
+If you are upgrading, continue below.  If a new, installation, skip to
+the next section, B.9.
+
+As described above, directories and config files are preserved; this
+is the list of the items preserved with the N/O method described above:
+
+doc
+help            .ignored
+archives        .aliases
+config           welcome.live
+owners           welcome.global
+support          signoff.global
+samples          unwanted.hosts
+
+(Note that some of these files and directories may not exist in the
+version you are upgrading from, but if you later do another
+installation of 8.2, or upgrade to 8.3, they will then be saved.)
+
+All of the new configuration files and standard text files will be
+created with an "N" preceeding them.
+
+You should decide if you want to use these new files.  You certainly
+want to refer to or use the new config file, as it has new
+configuration options in it.  And unless you've extensively customized
+your help files, you'll probably want to replace the help directory
+with Nhelp.  If you want to use any of these files, we suggest that
+you back up your old files by moving them to Ofilename, then move the
+new files from the Nfilename to just filename.
+
+For archive and lists directories, you will almost certainly want to
+use the original versions, as these still contain all of the
+information from your previous installation.  You should also
+definitely keep the .subscribers, .ignored and .aliases, as these
+contain important information about the setup of your site.
+
+The decision whether or not to use the new or the old versions of the
+other files is entirely up to you.  Often it is useful to keep the new
+versions around for reference purposes.  Unless you have customized
+the help, welcome, or signoff files, we recommend that you replace
+these with the newer versions included in the distribution.
+
+
+B.9) Finishing setup and testing.
+
+If upgrading, be sure to run revdb again if it didn't run successfully
+during the installation script, using the above mentioned script.
+
+Start up the ListProc server, running as the ListProc user:
+
+  ./start
+
+You should see something like this in the logfile:
+
+  Mar 25 15:10:54 start[1202]:  --- STARTING LISTPROCESSOR SYSTEM ---  ListProcessor(tm), (c) 1993-98 by CREN. 
+  Mar 25 15:10:54 start[1202]: All rights reserved.  
+  Mar 25 15:10:57 start[1202]: Old ListProcessor(tm) processes running: 0 
+  Mar 25 15:11:01 start[1202]: Old ListProcessor(tm) processes killed: 2 
+  Mar 25 15:11:04 start[1202]:  Number of active lists: 0
+  Mar 25 15:11:06 serverd[1237]: serverd starting with uid 10 (server)
+
+Don't worry about the old processes killed report---I believe that to
+be harmless (and if you're not running as root, start cannot kill
+anyone else's processes).  If you are upgrading, the number of active
+lists should be higher than 0.
+
+If the logfile reports any problems with your config file, fix them
+and then try again.
+
+If this is a new installation, a small reverse database (users.db)
+should be have been created ; however, if you are runing serverd
+setuid root, it will be owned by root.  If so, change the ownership to
+the ListProc user id with chown, or stop serverd (./stop -k), delete
+the file, and run revdb:
+
+   ./revdb create
+
+to create an "empty" database.  (Revdb create will work fine for this use.)
+
+If you are upgrading, ListProc will continue processing; you should
+turn on your MTA (e.g. sendmail) as soon as possible, so that
+temporarily undeliverable mail doesn't pile up in mqueue.
+
+Your installation or ugrade of ListProc 8.2 is now complete.
+
+You can test your installation and config file setup by sending to the
+listproc address the version command.  Check you log file (and maybe
+the log file of your MTA) if there are any problems.
+
+If this is a new installation, you will want skim Section 6 of the
+Site Reference manual (Site Management Issues), and then go to Section
+7 of the manual (List Management) for the information you need to set
+up your first list.  Don't forget that you need to use ilp logged in
+as the system manager, or send mail from the system manager account,
+in order for ListProc to accept your list creation "init" command.
+
+B.10) Setting up ListProc to automaticly start at boot, etc.
+
+If you're running Solaris 2 or another SVR4 derived Unix, follow the
+directions in sample_init.d for automatic starting and stopping.

@@ -1,0 +1,417 @@
+#! /bin/sh
+#                          @(#)general	6.10 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.general
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+                          ListProcessor(tm) 8.2
+
+                         Copyright (c) 1993-98 by
+         the Corporation for Research and Educational Networking (CREN)
+
+Here is a brief description of the set of requests recognized by 
+ListProcessor(tm). Everything appearing in [] below is optional; everything
+appearing in <> is mandatory; all arguments are case insensitive, except mail
+addresses and passwords. The vertical bar ("|") is used as a logical OR
+operator between the arguments. Requests may be abbreviated, but you must
+specify at least the first three characters.
+
+Keep in mind that when referring to a <list>, that list may be of two kinds:
+local or remote, unless otherwise noted. When referring to a local list, your
+request will be immediately processed; when referring to a remote list (a list
+served by another ListProcessor(tm) which this system knows about), your request
+will be appropriately forwarded. Issue a 'lists global' request to get a
+listing of all local and known remote lists to this ListProcessor(tm).
+
+Recognized requests are:
+
+
+                        *** GENERAL ***
+
+
+help [topic]
+------------
+Without arguments, this file. Otherwise get specific information on the
+selected topic. Topics may also refer to requests. To learn more about this
+system issue a 'help listproc' request. To get a listing of all available
+topics, generate an error message by sending a bogus request like 'help me'.
+
+lists [local|global [keywords]]
+-------------------------------
+Get a list of all local mailing lists served by this server, or of all known
+local and remote lists. If keywords are specified, they are treated as a
+logically ANDed list of strings/regular expressions; keywords can be quoted.
+When keywords are specified, only those lists' descriptions that match the
+keywords are listed.
+
+release
+version
+-------
+Get information about the current release of this ListProcessor(tm) system.
+
+
+                        *** FOR LISTS ***
+
+
+information [list]
+------------------
+This file if no list is specified, otherwise get information about the
+specified list.
+
+purge <password>
+----------------
+Remove yourself from all mailing lists on this host.
+
+recipients <list>
+-----------------
+Get a list of the current subscribers.
+
+review <list> [short|description|subscribers]
+---------------------------------------------
+Review the list's settings, get the list's general information file and get a
+listing of the current subscribers for the specified list.
+
+run <list> [<password> <cmd [args]>]
+------------------------------------
+Run the specified command with the optional arguments and receive the output
+from stdout and/or stderr. To get a listing of all available commands to run,
+omit the arguments, i.e. issue a 'run <list>' request. You have to belong to
+the specified list, and must have obtained the password from the list's owner;
+the owner's address may be found in the Errors-To: header line of each
+delivered message.
+
+set <list> [<option> [arg[s]]]
+------------------------------
+Without the optional arguments, get a list of all current settings for
+the specified list. Otherwise change the option to a new value for that
+list (or the list default if that value is missing).
+Valid arguments are:    mail [MAILMODE]
+							Where MAILMODE is one of ACK, NOACK, POSTPONE, 
+							DIGEST, DIGEST-MIME, or DIGEST-NOMIME
+                        password <current-password> [new-password]
+                        address <current-password> <new-address>
+                        conceal [YES|NO]
+                        preference [preferences]
+Issue a 'help set' request for more information.
+
+query <list>
+------------
+Same as 'set <list>' with no arguments.
+
+statistics <list> {[subscriber email address(es)] | [-all]}
+-----------------------------------------------------------
+Get a listing of non-concealed subscribers along with the number of messages
+each one of them has sent to the specified list. If the optional email
+addresses are given, then statistics will be collected for these users only.
+For example:
+                stat foo user1@domain user2@domain
+will generate statistics about these two subscribers. "-all" compiles 
+statistics for all users that have posted on the list (whether currently
+subscribed or not).
+
+subscribe <list> <your name>
+join <list> <your name>
+----------------------------
+The only way to subscribe to a list. 
+
+unsubscribe <list>
+signoff <list>
+------------------
+Remove yourself from the specified list.
+
+which
+-----
+Get a listing of local mailing lists to which you have subscribed.
+
+which-owned
+-----------
+Get a listing of local mailing lists which you own.
+
+
+                        *** FOR ARCHIVES ***
+
+
+afd <action> {<archive> [/password] [files]} [{<archive> [/password] [files]}]...
+fui <action> {<archive> [/password] [files]} [{<archive> [/password] [files]}]...
+---------------------------------------------------------------------------------
+Automatic File Delivery (AFD) and File Update Information (FUI). Add/delete
+yourself to archives and/or files, and be notified when these archives or
+files are updated. "action" can be: add, delete or query. The site's manager
+may manipulate other addresses by listing them after the archive 
+specification(s).
+
+archive <archive name> <password> <action> [args]
+-------------------------------------------------
+Manipulate archives; the manager may create new archives, remove existing
+ones, or reconfigure existing ones. Both the manager and the archive's owners
+may add, delete or update existing files.
+
+fax <fax-number> <archive | path-to-archive> <file> [/password] [parts]
+-----------------------------------------------------------------------
+Same as 'get', but it faxes you the files instead to the specified number.
+
+get <archive | path-to-archive> <file> [/password] [parts]
+----------------------------------------------------------
+Get the requested file from the specified archive. Files are usually split in
+parts locally, and in such a case you will receive the file in multiple email
+messages -- an 'index' request tells you how many parts the file has been split
+into, and their sizes; if you need to obtain certain parts, specify them as
+optional arguments. If an archive is private, you have to provide its password
+as well.
+
+index [archive | path-to-archive] [/password] [-all]
+----------------------------------------------------
+Get a list of files in the selected archive, or the master archive if no
+archive was specified. If an archive is private, you have to provide its
+password as well.
+
+search <archive | path-to-archive>] [/password] [-all] <pattern>
+----------------------------------------------------------------
+Search all files of the specified archive (and all of its subarchives if -all
+is specified) for lines that match the pattern. The pattern can be an
+egrep(1)-style regular expression with support for the following additional
+operators: '~' (negation), '|' and '&' (logical OR and AND), '<' '>' (group
+regular expressions). The pattern may be enclosed in single or double quotes.
+Note: . matches any character including new line.
+
+view <archive | path-to-archive>] [/password] [parts]
+-----------------------------------------------------
+Same as 'get' but in interactive mode justs catenates the file on the screen.
+
+
+                        *** FOR LIST MANAGEMENT ***
+
+
+Below, <password> refers to the list's password:
+
+[quiet] add <list> <password> <address> <name>
+[quiet] add <list> <password> {<address> <name>} {<address> <name>} ...
+-----------------------------------------------------------------------
+Add the specified user(s) to the list. If more than one user is added you need
+to enclose each one in {}. If quiet, the user(s) will not be notified.
+
+approve <list> <password> <tag> [tag] ...
+-----------------------------------------
+Approve the message(s) identified by the tag number(s) for posting to the
+specified moderated list -- applies to moderated-no-edit lists only.
+
+configuration <list> <password> [<option> [args] [, <option> [args] ...]]
+global configuration <password> [<option> [args] [, <option> [args] ...]]
+-------------------------------------------------------------------------
+Get or set a list's or all lists configuration options; only the manager can
+globally change parameters; without any of the options below,
+get the current settings. Options are a comma-separated list of one or more of
+the following keywords (options marked with * can be issued by the manager
+only; options marked with + are relative):
+*       ARCHIVE [dir] [filespec] [arch-name] [password] [messages|digests]
+        ARCHIVE [password] [messages|digests]
+        NO-ARCHIVE
+*       COMPRESSED-ARCHIVES
+*       UNCOMPRESSED-ARCHIVES
+        ARCHIVES-TO-ALL
+        ARCHIVES-TO-OWNERS
+        ARCHIVES-TO-SUBSCRIBERS
+        AUTO-DELETE-SUBSCRIBERS
+        NO-AUTO-DELETE-SUBSCRIBERS
+        CLOSED-SUBSCRIPTIONS
+        OPEN-SUBSCRIPTIONS
+        OWNER-SUBSCRIPTIONS
+        WIDE-OPEN-LIST
+        COMMENT <string>
+        NO-COMMENT
+        DEFAULT <mailmode> <value> [<mailmode> <value>] ...
+                address variable|fixed
+                mail ack|noack|postpone|digest|digest-mime|digest-nomime
+                password <string>
+                conceal yes|no
++               preference CCoption
++       DELIVERY-ERRORS-TO <address> [address] ...
++       REMOVE-ERRORS-TO <address> [address] ...
+        DIGEST <frequency> [when] [lines bytes]
+               daily hh:mm
+               weekly Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday
+               monthly
+        NO-DIGESTS
++       DISABLE <request> [request] ...
++       ENABLE <request> [request] ...
++       SET-DISABLE <mode> [value] [<mode> [value]] ...
+                    mail ack|noack|postpone|digest|digest-mime|digest-nomime
+                    conceal yes|no
+                    password
++       SET-ENABLE <mode> [value] [<mode> [value]] ...
+                    mail ack|noack|postpone|digest|digest-mime|digest-nomime
+                    conceal yes|no
+                    password
+        FORWARD-REJECTS
+        DONT-FORWARD-REJECTS
+        KEEP-RESENT-LINES
+        DONT-KEEP-RESENT-LINES
+        REFLECTOR
+        NO-REFLECTOR
+        HIDDEN-LIST
+        VISIBLE-LIST
+        PUBLISHED-LIST
+        UNPUBLISHED-LIST
+*       MANAGER-CONTROLLED
+*       OWNER-CONTROLLED
+        MAX-MESSAGES-PER-DAY <number>
+        MESSAGE-LIMIT <number>
+        NO-MESSAGE-LIMIT
++       MODERATED-EDIT [address] ...
++       MODERATED-NO-EDIT [address] ...
+        UNMODERATED
++       REMOVE-MODERATORS <address> [address]
++       OWNERS <address> [address] ...
++       REMOVE-OWNERS <address> [address] ...
+        PASSWORD <string>
+*       THREADS <number>
+*       MTA-HOST <host> [port]
++       SUBSCRIPTION-MANAGERS <address> [address] ...
++       REMOVE-SUBSCRIPTION-MANAGERS <address> [address] ...
+        REMOVE-ALL-SUBSCRIPTION-MANAGERS
+        REPLY-TO-LIST
+        REPLY-TO-LIST-ALWAYS
+        REPLY-TO-SENDER
+        REPLY-TO-SENDER-ALWAYS
+        REPLY-TO-OMITTED
+        REVIEW-TO-ALL
+        REVIEW-BY-ALL
+        REVIEW-TO-OWNERS
+        REVIEW-BY-OWNERS
+        REVIEW-TO-SUBSCRIBERS
+        REVIEW-BY-SUBSCRIBERS
+        REVIEW-TO-SUBSCRIBERS-SHORT
+        REVIEW-BY-SUBSCRIBERS-SHORT
+        STATISTICS-TO-ALL
+        STATISTICS-BY-ALL
+        STATS-TO-ALL
+        STATS-BY-ALL
+        STATISTICS-TO-OWNERS
+        STATISTICS-BY-OWNERS
+        STATS-TO-OWNERS
+        STATS-BY-OWNERS
+        STATISTICS-TO-SUBSCRIBERS
+        STATISTICS-BY-SUBSCRIBERS
+        STATS-TO-SUBSCRIBERS
+        STATS-BY-SUBSCRIBERS
+        SEND-BY-ALL
+        SEND-BY-OWNERS
+        SEND-BY-OWNERS-CONFIRM
+        SEND-BY-SUBSCRIBERS
+        SEND-BY-SUBSCRIBERS-CONFIRM
+        CONFIRM-ALL-SUBSCRIPTIONS
+        DONT-CONFIRM-ALL-SUBSCRIPTIONS
+        CONFIRM-ALL-UNSUBSCRIPTIONS
+        DONT-CONFIRM-ALL-UNSUBSCRIPTIONS
+        ALLOW-EMPTY-SUBSCRIBER-NAMES
+        DONT-ALLOW-EMPTY-SUBSCRIBER-NAMES
+        ALLOW-ALTERNATE-ADDRESS-COMMANDS
+        DONT-ALLOW-ALTERNATE-ADDRESS-COMMANDS
+
+
+[quiet] delete <list> <password> <address> [address] ...
+--------------------------------------------------------
+Delete the specified address(es)/users from the list. If quiet, the user(s)
+will not be notified.
+
+discard <list> <password> <tag> [tag] ...
+-----------------------------------------
+Discard the message(s) identified by the tag number(s) sent to the specified
+moderated list -- applies to moderated-no-edit lists only.
+
+edit <list> <password> <file> [-nolock]
+---------------------------------------
+Obtain the specified file for editing; file can be one of:
+        subscribers, aliases, news, peers, ignored, info, welcome
+Without -nolock, the file will be automatically locked.
+
+free <list> <password>
+----------------------
+Resume delivery of a held list, or reset the daily message count to zero. If
+the manager held the list, only he can free it.
+
+hold <list> <password>
+----------------------
+Suspend distribution of messages.
+
+initialize <manager password> [<list alias> <list address> <configuration options>]
+new-list <manager password> <list alias> <list address> <configuration options>
+---------------------------------------------------------------------------------
+Initialize a new list, or tell the server to reread the master config file.
+Can be issued by the manager only.
+
+lock <list> <password>
+----------------------
+Suspend execution of list-specific requests and queue them up for later
+processing. Owners may still issue such requests, unless the list is locked
+by the manager.
+
+purge <password> <address> [address] ...
+----------------------------------------
+Remove the specified address(es) from all mailing lists on the local host.
+Can be issued by the manager only. All users are removed quietly.
+
+put <list> <password> <keyword> [args]
+--------------------------------------
+Manipulate addresses and change system files. Keywords and args can be:
+  keyword: alias|ignore|subscribers|aliases|news|peers|ignored|info|welcome
+  args: email address for alias|ignore
+When putting a file, its contents start immediately after the request and span
+the entire message.
+
+reports <list> <password>
+-------------------------
+Obtain all reports about the specified local list.
+
+[quiet] set <list> [<option> [arg[s]]] for <address> [address] ...
+------------------------------------------------------------------
+Same as 'set' above but applies changes to specified address(es). If quiet,
+the user(s) will not be notified.
+
+system <list> <password> <user-address> #user-request
+-----------------------------------------------------
+Issue any request on another user's behalf.
+
+unlock <list> <password>
+------------------------
+Resume execution of list-specific requests, including those queued up while
+the list was locked. All owners may unlock a list, unless it's locked by the
+manager.
+
+
+                        *** OTHER ***
+
+
+Help is also available on the following topics:
+
+listproc
+--------
+Learn more about this system and list management software in general.
+
+live
+----
+Learn how to connect to this ListProcessor(tm) over the Internet for live
+processing of your requests.
+EOF

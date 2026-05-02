@@ -1,0 +1,60 @@
+# 
+#  			@(#)TOPICS	6.3 CREN 98/03/03
+# 
+# 			Copyright (c) 1993-98 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+#
+
+
+add				help/add
+afd				help/afd_fui
+alias			help/alias_ignore
+approve			help/approve
+archive			help/archive
+configuration	help/configuration
+configure		help/configuration
+delete			help/delete
+discard			help/discard
+edit			help/edit
+fax				help/fax
+free			help/hold_free
+fui				help/afd_fui
+general			help/general
+get				help/get
+hold			help/hold_free
+ignore			help/alias_ignore
+index			help/index
+information		help/information
+initialize		help/initialize
+join			help/subscribe
+lists			help/lists
+listproc		help/listproc
+live			help/live
+lock			help/hold_free
+new-list		help/initialize
+purge			help/purge
+put		    	help/put
+query			help/set
+recipients		help/recipients
+review			help/recipients
+release			help/release 
+reports			help/reports
+run				help/run
+search			help/search
+sendme			help/get
+set				help/set
+signoff			help/unsubscribe
+statistics		help/statistics 
+subscribe		help/subscribe
+system			help/system
+unlock			help/hold_free
+unsubscribe		help/unsubscribe
+version			help/release
+view			help/get
+which			help/which
+which-owned		help/which-owned

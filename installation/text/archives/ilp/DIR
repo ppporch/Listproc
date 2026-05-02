@@ -1,0 +1,6 @@
+ilp.c 1 37575 [INSTALL_PATH]/archives/ilp Interactive ListProcessor(tm) client
+ilp.h 1 2877 [INSTALL_PATH]/archives/ilp Specific defs for ilp.c
+ilpp.h 1 1248 [INSTALL_PATH]/archives/ilp Interactive ListProcessor(tm) Protocol
+ilp.1 1 5907 [INSTALL_PATH]/archives/ilp man page
+ilp.nr 1 7546 [INSTALL_PATH]/archives/ilp Preformatted man page
+makefile 1 2685 [INSTALL_PATH]/archives/ilp

@@ -1,0 +1,4 @@
+A file with a date stamp gauranteed to be earlier than the dates
+of the library files.
+
+This is used to prevent checking libraries in unnecessary situations.

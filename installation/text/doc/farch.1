@@ -1,0 +1,336 @@
+.\" 
+.\"  			@(#)farch.1	6.5 CREN 97/02/18
+.\" 
+.\" 			Copyright (c) 1993-97 by
+.\" 	the Corporation for Research and Educational Networking (CREN)
+.\" 
+.\" All rights reserved. This software comprises confidential
+.\" information of CREN and may not be used, copied or made available to anyone,
+.\" except in accordance with the license under which it is furnished.
+.\" 
+.\" SCCS file: /usr/SCCS/home/server/listproc/distrib/doc/s.farch.1
+.\" 
+.\" 
+.\" ListProcessor(tm) System
+.\" Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)
+.\"
+.TH farch 1 "ListProcessor(tm)"
+.SH NAME
+\fBfarch\fP \- archive files under the ListProcessor(tm) system
+.SH SYNOPSIS
+\fBfarch\fP [\fB-G\ gate_sid -S\ mask_sid\fP] {{[\fB-n\fP] [\fB-b\fP | \fB-B\fP] [\fB-s\ size\fP] [\fB-d\ dir\fP] [\fB-p\ password\fP] [\fB-D\ description\fP]\ [\fB-t\ file\fP] [\fB-u\fP]} | {[\fB-r\fP]} [<\fB-a | -A\fP> \fBarchive | path-to-archive\fP] [\fB-Z\fP] [\fBfiles\fP]} | {<\fB-R\ archive\fP>}
+.SH DESCRIPTION
+\fIfarch\fP is used to archive files under the ListProcessor(tm) system 
+or remove files already archived, with support provided for private archives.
+Archives reside under LPDIR/archives as subdirectories; the default is
+\fIlistproc\fP,
+and it is also the master archive. Archives are hierarchically
+structured, and each archive has at least two files in its directory:
+.TP
+INDEX
+A list of all subarchives including itself; the format is one line per
+archive with the archive's name followed by the archive's full path, followed
+by an optional password:
+.sp
+archive-name full-path-to-archive-directory [password]
+.sp
+The first entry should be the archive itself;
+each first level subarchive is listed next; then each second level
+subarchive, starting with the first first-level-archive's subarchives,
+followed by the second first-level-archive's subarchives, etc. No sibling
+archives may have the same name, although there is no such restriction
+for archives on different levels, or "cousin" archives. The latter archives
+are distinguished by the relative path needed to access them (see
+\fIserver\fP(1) for more information).
+.sp
+An archive name may start with the special character % to designate
+it for AFD/FUI files.
+.TP
+DIR
+A list of files available from that archive; the format is one line
+per file with the file name followed by the number of parts it may be
+split into, followed by the number of bytes of each of the parts, followed
+by the full path to the directory these parts can be found, followed
+by a short descriptive message about the file (optional). The descriptive
+message may span several lines; each line (except the last) should end 
+with a '\\':
+.sp
+.nf
+file nparts size-of-each-part+ full-path-to-directory [description [\\]]
+[multiple description lines [\\]]*
+.fi
+.sp
+The number of parts the file is split into may be -1 to indicate that
+this is a binary file.
+.PP
+Moreover, the following system files may appear in an archive; these are
+system generated and maintained and should not be hand-modified:
+.TP
+SFT
+Subscribers Files Table (for AFD/FUI); syntax:
+.sp
+.nf
+<address> <file///mode> [file///mode]...
+.sp
+.fi
+where mode = D for delivery, N for notification. / is the field separator,
+and currently there are two fields reserved for future use.
+.TP
+FST
+Files Subscribers Table (for AFD/FUI); syntax:
+.sp
+.nf
+<file> <timestamp> <address ///mode> [address ///mode]...
+.sp
+.fi
+Notice the space after the address.
+.sp
+Entries in both files may be continued on the next line if they end with \\.
+Comments are supported; put a # in column 1.
+.TP
+FMT
+File Modification times Table (for AFD/FUI); syntax:
+.sp
+.nf
+<file> <modification time>
+.fi
+.TP
+CONFIG
+.sp
+This file contains configuration information about the archive used
+in ARCHIVE requests. The following keywords may appear:
+.sp
+.nf
+mask <mask-value> <user password> <chunk size>
+directory <archive directory>
+password <administrative password>
+owner <owner address>
+.fi
+.sp
+The mask stores information about the accessibility of the archive
+(private or not), the compression state of files, whether files are to be
+split, and whether the archive is AFD/FUI-able.
+.PP
+\fIfarch\fP reports on the action taken on each input file: whether it
+was split (and how many parts), whether it was uuencoded, whether all files
+have been tar'red into a single one, the archive this file was archived under,
+and the directory the output file(s) (if any) has/have been placed. It
+also reports when the input files are tarred.
+.SH OPTIONS
+The following command line options are recognized:
+.TP
+-G gate_sid
+Specify the gate semaphore id; to obtain this id run the semset utility and
+look for the server id with positive key (0x00000001 -- hex 1 -- or higher).
+This id exists only when serverd is up; if not, you should not specify a -G
+flag. If the server is up, the first number in the .semaphores file is the
+gate id.
+.TP
+-S mask_sid
+Specify the mask semaphore id; to obtain this id run the semset utility and
+look for the server id with key 0x00000000 (hex 0). This id exists only
+when serverd is up; if not, you should not specify a -S flag.
+If the server is up, the second number in the .semaphores file is the
+mask id.
+Below is sample output from semset; the gate semaphore id is 30 and the
+mask semaphore id is 31:
+.nf
+
+server: ~/listproc 254% semset
+ ... [stuff deleted] ...
+T ID KEY        MODE          OWNER    GROUP  CREATOR   CGROUP ...
+Semaphores:
+s 30 0x00000001 --ra-------   server   other  root      other  ...
+s 31 0x00000000 --ra-------   server   other  root      other  ...
+
+.fi
+.TP
+-n
+Do not split files when archiving them. The default is to split them with
+each part not larger than the specified size (see the -s option below).
+.TP
+-b
+Input files are binary; they are uuencoded before archived.
+.TP
+-B
+Input files are binary; they are neither uuencoded nor split.
+.TP
+-s size
+Specify the maximum \fIsize\fP in kilobytes of each of the subparts 
+(default is 64).
+.TP
+-d dir
+Specify the \fIdir\fPectory that the output files are to be placed; if
+left out, it defaults to the specified archive's directory
+(LPDIR/archives/listproc if the archive is left out as well).
+If the directory (and all of its subdirectories, if any) does not exist,
+it will be created.
+.TP
+-p password
+When a new archive is to be created, and that archive is to be private,
+specify the access password.
+.TP
+-D description
+Put \fIdescription\fP (most likely surrounded by single quotes) in the
+DIR file as explanatory comment about the archived file. This option does
+not make much sense when archiving more than one file at the same time.
+.TP
+-t file
+Input files are tar'red into \fIfile\fP which is then archived (the -b flag
+is automatically turned on). Turning on the -B flag will prevent uuencoding
+of the tar file. Note that whatever the path to \fIfile\fP may
+be, it will be moved to the specified directory as specified by the -d flag.
+.TP
+-u
+Update existing files while archiving; preserve the current comment fields,
+unless -D is explicitly used.
+.TP
+-r
+Remove the specified file(s) from the specified archive (see below), or the
+default one; it has higher priority than all of the options above.
+.TP
+-a archive | path-to-archive
+Specify the \fIarchive\fP that the input files will be archived under (default
+is listproc). Archives on different levels of the hierarchy may have the
+same name and in this case a \fIpath-to-archive\fP may be specified to
+distinguish between them;
+\fIpath-to-archive\fP has the form \fIarchive[/archive[/archive...]]\fP
+(see also \fIserver(1)\fP). If any of the archives in the path do not exist,
+they will be created with the necessary files.
+.TP
+-A archive | path-to-archive
+Same as -a, put it marks the archive ready for AFD/FUI files. To switch 
+this mode off, simply specify the -a flag and vice versa.
+.TP
+-Z
+Turn off file compression.
+.TP
+-R archive
+Remove the specified archive, and all of its subarchives. The default archive
+cannot be removed.
+.PP
+File names in the DIR file have to be unique and \fIfarch\fP will not
+archive duplicate files.
+.SH ARCHIVING\ A\ FILE
+\fIfarch\fP by default splits the input files if necessary
+(or the tar file, if any),
+into files of maximum size as specified. Each part
+will contain as many complete lines from the original input file as possible,
+without exceeding the specified size. Binary files (including the tar file)
+are uuencoded before they are archived unless the -B option is specified,
+and all archived files are compressed, if possible.
+.SH ADDING\ A\ NEW\ ARCHIVE
+.TP
+automatically
+Simply specify the new archive as argument to the -a flag. All necessary DIR
+and INDEX files as well as all required directories will be created, and
+all parent archives will be updated.
+.TP
+by hand
+Step 1
+.sp
+Create a directory under LPDIR/archives or under an existing
+archive's directory (beware of the hierarchy structure), naming the
+directory after the archive.
+The archive's name should be unique among its siblings on that level in the
+hierarchy (besides, mkdir will not let specify a name that already exists).
+.sp
+Step 2
+.sp
+Edit the master archive's index file (LPDIR/archives/listproc/INDEX) and
+add the new archive along with its path (and optional password -- see below)
+at the proper place in the file, making sure you adhere to the
+rules about hierarchy outlined above. The first line of every INDEX
+file should be the archive itself. Also edit (add to) every ancestor archive's
+INDEX file, if the new archive is not the default, again making sure you adhere
+to the same rules.
+.sp
+Step 3
+.sp
+Create a new INDEX file in the new archive's directory and put an entry
+for itself.
+.sp
+Step 4
+.sp
+Create an empty DIR file in the new archive's directory.
+.SH PRIVATE\ ARCHIVES
+Private archives are archives that require a password for obtaining
+indices and/or files from them. To make an archive private, simply
+append a password (case does not matter) after its full path specification
+in every INDEX file the archive is defined (its own plus all ancestors' --
+the same password has to be used in all of these files). Then, that 
+password has
+to be made known to all users who are to be granted access to this archive.
+Note that all files in the same private archive can be obtained with the
+same single password.
+.SH EXAMPLES
+Archive src/data and src/data2 under archive listproc (the default),
+using a maximum file size of 1K; the output file(s) will be placed in /tmp/tmp:
+.sp
+.nf
+.in +2
+% farch -s 1 -d /tmp/tmp src/data src/data2
+.fi
+.in -2
+.sp
+Archive /etc/hosts under archive unix (that is listproc/unix) -- the -n
+flag is used to avoid writing split parts to /etc which is doomed to fail:
+.sp
+.nf
+.in +2
+% farch -n -a unix -d /etc -p private /etc/hosts
+.fi
+.in -2
+.sp
+Archive /etc/password under archive pub/unix (that is listproc/pub/unix):
+.sp
+.nf
+.in +2
+% farch -n -a pub/unix -d /etc /etc/passwd
+.fi
+.in -2
+.sp
+Tar and archive all files in /usr/src to the default archive and place the
+tar file under /tmp/tmp:
+.sp
+.nf
+.in +2
+% farch -t LPDIR/source -d /tmp/tmp /usr/src/*.c
+.fi
+.in -2
+.sp
+Descriptive messages about these files are added manually into the archive's
+DIR file. However, the -D option can be used to specify a string as follows:
+.sp
+.nf
+.in +2
+% farch -D 'ListProcessor(tm) system files' -t ulistproc.tar -n -d /usr/server /usr/server/*
+.SH UPGRADING
+If you are upgrading from:
+.TP
+6.0
+The -A option is new; functionality is the same.
+.TP
+5.5
+The -B, -p, -r and -D options are new; functionality is the same.
+.TP
+5.41 or less
+Every DIR file should now include the size of each of the parts of every
+file, placed between the number of parts and the path name.
+.sp
+The -a option has been extended to accept paths to archives.
+.SH RESTRICTIONS
+\-
+Archive names and input files must use only lower case characters of the
+alphabet.
+.SH WARNINGS
+\-
+Input files that are to be tar'red should only include relative path names;
+otherwise the end user may not be able to extract them.
+.sp
+\-
+The tar file should not be any of the input files.
+.SH SEE\ ALSO
+server(1)
+.SH COPYRIGHT
+Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)

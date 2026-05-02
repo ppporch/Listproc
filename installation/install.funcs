@@ -1,0 +1,129 @@
+#-*-shell-script-*-
+
+
+
+######################################################################
+#
+#  Utility function to remake a file
+#
+######################################################################
+remake()
+{
+    file=$1
+    init=$2
+    fine=$3
+
+    echo "$init $fine" | fgrep '!' > /dev/null
+    if [ $? = 0 ]; then
+        echo "script error: sed search/replace strings contain the separator: \"!\""
+        exit 1
+    fi
+
+    sed -e "s!$init!$fine!g" $file > $file.new
+    if [ -s $file.new ]; then
+        rm -f $file
+        mv $file.new $file
+    fi
+}
+
+
+
+######################################################################
+#
+# Check and set the permissions on serverd
+#
+# NOTE: This assumes that if the -p is used the port is above 1024.
+# The only check is done for an explicit declaration to use port 372.
+#
+######################################################################
+fix_serverd_perms()
+{
+    serverd=`grep serverd config | sed s/#.*$//`
+    echo $serverd | egrep -e '-i' > /dev/null
+    no_ilp=$?
+    
+    echo $serverd | egrep -e '-p' > /dev/null
+    defport=$?
+    
+    privport=1
+    port=372
+
+    if [ $defport = 0 ]; then
+        port=`echo $serverd | \
+            sed "s/^.*-p *//" | \
+            sed "s/ .*$//" `
+
+        if [ $port -gt 1024 ]; then
+            privport=0
+        fi
+    fi
+    
+    if [ $no_ilp = 0  -a  $privport = 1 ]; then
+        cat <<EOF
+
+Your configuration file enables ILP on the privileged port $port.  In order
+to listen on this port, serverd needs to be setuid root.  To do this now,
+you will need to enter the root password.
+EOF
+
+        #
+        # Set perms
+        #
+        su root -c "chown root serverd; chmod 4755 serverd"
+        if [ $? -ne 0 ]; then
+        cat <<EOF
+
+I was unable to set the correct permissions on serverd.  After the
+installation completes, you should do one of three things to fix this:
+
+1) Set the serverd permissions by hand with the following command:
+
+    $ su root -c "chown root serverd; chmod 4755 serverd"
+
+2) Tell ListProc to use a different port for ILP, by adding "-p
+<port>" to your config file.  For example, the following line
+instructs ListProc to enable ILP on port 2333:
+
+    serverd -i 600 -p 2333
+
+3) Disable ILP altogether by removing the "-i <number>" from the
+"serverd" line of your config file.  The following simple line will do
+the trick:
+
+    serverd
+
+EOF
+        echo "press RETURN to continue."
+        read x
+
+        fi
+
+
+        #
+        # Check for the service definition in 
+        #
+        egrep "$port/tcp" /etc/services | egrep "ulistproc" > /dev/null
+        #egrep "ulistproc.*$port" /etc/services > /dev/null
+        if [ $? = 1 ]; then
+            cat <<EOF
+Your system doesn't currently have a ListProc entry in /etc/services.
+
+In order for ListProc to be able to listen on port $port, you must define
+a service for it in /etc/services.  When the installtion script is complete,
+you should add the following line to /etc/services:
+
+ulistproc        $port/tcp
+
+EOF
+
+        echo "Press RETURN to continue."
+        read x
+
+        fi
+
+    fi
+}
+
+
+
+

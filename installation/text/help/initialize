@@ -1,0 +1,43 @@
+#! /bin/sh
+#                          @(#)initialize	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.initialize
+#
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: initialize <manager password> [<list alias> <list address> <configuration options>]
+        new-list <manager password> <list alias> <list address> <configuration options>
+
+        Reinitialize the server (reread the master config file), or define a
+        new mailing list by specifying its name, full address and configuration
+        options (see 'help configuration').
+
+        Example:
+
+                init passwd
+
+                init passwd test test@host.domain archive, owners foo bar, &
+                archive, hidden, owner-subscriptions, auto-delete, &
+                password test1, digest daily 12:00, reply-to-list-always, &
+                message-limit 50
+EOF

@@ -1,0 +1,53 @@
+
+ 			README.install
+
+			Copyright (c) 1993-98 by
+	the Corporation for Research and Educational Networking (CREN)
+
+All rights reserved. This software comprises confidential information
+of CREN and may not be used, copied or made available to anyone,
+except in accordance with the license under which it is furnished.
+
+
+
+
+        Installation Instructions for ListProc 8.2
+
+
+For detailed installation instructions, please refer to the ListProc
+site reference manual.  You can retrieve the site reference manual
+from CREN's ListProc documentation page:
+
+	http://www.cren.net/listproc/docs/
+
+You should also read the release (docs/8.2-notes) notes for ListProc
+8.2 to see the changes between versions 8.1a and 8.2.
+
+
+Utility scripts are provided to take care of most aspects of
+upgrading.  The list below briefly describes the steps you should take
+when upgrading from the specified version.
+
+
+
+From 8.1a or earlier:  
+
+   * run "revdb create" to generate the reverse lookup DBM for
+     subscriber informaiton.  The installation script should do this
+     for you.
+
+From 8.1 or earlier:
+
+   * Run the "support/force_digests" script in order to send out any
+     partial digests that had accumulated on the system.  ListProc 8.2
+     accumulates digests in both MIME and non-MIME formats, and this
+     will allow it to start with a clean slate.
+
+From 7.2 or earlier:
+
+   * ListProc 8.0 and above use individual tag IDs for each moderated
+     list, rather than a global tag ID.  Run "support/fix_tag_id" to
+     create valid tag ID numbers for moderated lists.
+
+
+

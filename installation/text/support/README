@@ -1,0 +1,63 @@
+-*-indented-text-*-
+
+This directory contains support utilities and for managing and
+converting listproc.  In all cases, the begining of the script file
+will contain instructions on how it should be used.
+
+
+add_footer          Sample script to add a standard footer to outgoing
+					list messages.
+
+convert.pl          Perl script that will take as input your listproc
+		            6.0 config and owners file and generate a suitable
+		            init command that can be sent to listproc and a
+		            file containing the necessary aliases to insert in
+		            your system alias file.
+
+cycle-mbox          Listproc preserves all incomming list mail in
+			        $LPDIR/LIST-ALIAS/mbox.  This file can and will
+			        grow.  This script should be run out of cron (I
+			        recommend once per week) and rotates the file as
+			        mbox.0, mbox.1 ... for a total of five weeks (if
+			        run weekely) of logs.
+
+dual_digests		Create non-MIME digests from the partial MIME
+					digests in the list directories.  This should be
+					run if you are upgrading from ListProc versions
+					prior to 8.1a.
+
+fix_tag_id			Create valid .tag.id files for all lists.
+					ListProc versions 8.0 and above use seperate tag
+					ID numbers for messages on moderated lists.  This
+					script searches through any messages that are
+					still waiting to be approved and/or discarded, and
+					creates a list-specific .tag.id file that will
+					ensure unique tag IDs for new messages.  This
+					script should be run if you are upgrading from
+					versions 7.X.
+
+force_digests		This sends out list digests for all lists with
+					partial digests.  This should be run when
+					upgrading from ListProc versions 7.X to
+					accommodate the MIME digest format used
+					starting with version 8.0.
+
+lsv_conv_list.pl    This utility converts a VM Listserv subscribers file
+					into listproc format.  It preserves all the user
+					options.
+
+lsv_conv_logs.pl    This utility converts VM Listserv logs into a format
+                    suitable for listproc archives.  It changes the
+                    logs to Unix mbox format and places them, using
+                    farch, into the archive directory.
+
+procs               Count all of the ListProc processes currently 
+					running.
+
+remove_list			Removes a ListProc list.
+
+samples				Directory with sample files for shell init scripts
+				    and other things
+
+ulock				Clean up ListProc's lockfiles and directories.  
+

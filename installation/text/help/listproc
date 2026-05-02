@@ -1,0 +1,191 @@
+#! /bin/sh
+#                          @(#)listproc	6.3 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/jrvb/dev/lp82/help/s.listproc
+#
+
+
+#! /bin/sh
+LISTPROC=`egrep '^[         ]*server[         ]+' /home/jrvb/dev/lp82/config | awk '{ print $2 }'`
+cat <<EOF
+                      ListProcessor(tm) version 8.2
+
+                         Copyright (c) 1993-98 by
+         the Corporation for Research and Educational Networking (CREN)
+
+                                 May 1994
+
+                          Preliminary User's Guide
+
+Contents:
+---------
+1) What is ListProcessor(tm)
+2) How do I use the ListProcessor(tm)
+   2.1) Regular users
+   2.2) List owners
+3) Archives
+4) Format of requests
+5) More information
+
+
+1) What is ListProcessor(tm)
+------------------------
+ListProcessor(tm) is a system that automates mailing lists and archives. Users
+may add themselves to mailing lists supported by ListProcessor(tm), post
+messages, review the members of a list, etc. The system also maintains
+hierarchical archives of files that users may get. Archives and mailing
+lists may be private, which means that a password is required for archive
+access, and that the owner of a private mailing list decides who may
+subscribe and who may not. Lists may also be moderated, in which case the
+owner decides which messages are made public, and which are flushed.
+
+2) How do I use the ListProcessor(tm)
+-------------------------------------
+There are two levels of users: a) regular users who subscribe to lists and
+send/receive messages and get files from archives, and b) list owners who
+oversee the functioning of lists. There is of course a system manager that
+oversees the entire operation.
+
+List owners have certain privileges: they can add and remove users from their
+lists, reject postings to moderated lists, manipulate addresses, etc.
+
+All users interact with ListProcessor(tm) by email. ListProcessor(tm)
+understands a sginificant set of requests and expects a fixed syntax for
+each one of those. Users send email to $LISTPROC when they wish to have a
+request processed. If users want to send a message to a mailing list, they
+email to list-name@address instead.
+
+2.1) Regular users
+------------------
+Usually, the first thing that a regular user will want to do is find out which
+lists are available for subscription. He should then send email to
+$LISTPROC with a 'lists' request in the body of the message and nothing
+else.
+
+He then subscribes to a list called foo by sending another email to
+$LISTPROC with the following request:
+
+                subscribe foo <His Name>
+
+where <His Name> should let people know who he is.
+
+Once subscribed, he may send messages to foo@address. He may remove himself
+from that list later on by issuing a:
+
+                unsubscribe foo
+
+request to $LISTPROC.
+
+To access the archives, an 'index' request is sent to $LISTPROC to find
+out what archives are available and what files may be obtained from these
+archives. A user then may request one or more files via a 'get' request. For
+example:
+
+        get products/database/name/version/fixes patch
+
+will send the file patch from that archive. In the case of binary files, what
+the user receives is a uuencoded file, possibly split in parts due to its size.
+Archives may be searched with the 'search' request which accepts an egrep(1)-
+style pattern,
+
+For extensive information on all requests, $LISTPROC accepts requests
+like 'help [topic]' where 'topic' is a request.
+
+2.2) List owners
+----------------
+List owners are users who have special privileges on the lists they are
+assigned to. Each mailing list has at least one primary owner and may have
+infinite secondary ones. The primary owner will be the recipient of all error
+messages and may set more preferences by contacting the system's manager;
+these preferences include requests to be copied on certain user requests. For
+example, an owner may wish to be notified when someone subscribed to his list,
+or when someone signed off.
+
+Each list is accessed by an owner via a password. All owner requests require
+that password. In addition, the email address of the owner is verified for
+such requests.
+
+The following owner requests (which should always be sent to $LISTPROC)
+are recognized (refer to the man page for hidden owner requests not mentioned
+here):
+
+a)        reports <list> <password>
+
+A copy of the report files on list activity are sent to the owner.
+
+b)        edit <list> <password> <file>
+
+Each list is controlled through some system files. These include the
+subscribers file, the welcoming message, the aliases file and the ignored file
+(enemies of the list). Refer to the man page for more information.
+
+c)        put <list> <password> <keyword> [args]
+
+The aboved edited files may be put back using this request. The owner may also
+put new aliases and enemies to the database. Refer to the man page for more
+information.
+
+d)        approve <list> <password> <tag>
+
+If a list is moderated, each message sent by a regular user is forwarded to
+the primary owner for review, editing and approval. Each such message is
+identified by a unique tag number. The owner sends back the approved message
+to $LISTPROC preceded by the above request, and provides the proper tag
+number.
+
+e)        discard <list> <password> <tag>
+
+This is the opposite of 'approve'. A message that is not approved or discarded
+will remain in the queue for ever.
+
+3) Archives
+-----------
+Each mailing list may have its messages automatically archived. This can be
+useful for newcomers who want to catch up with the discussion, or for posting
+and archiving FAQ's.
+
+The system may also keep archives of patches, and other types of files. As
+explained before, archives may be private in which case passwords are required
+for access for both the 'index' and 'get' requests.
+
+4) Format of requests
+---------------------
+For the most part, requests span a single line. However, for whatever the
+reason a request may be continued on another line if it is terminated by &\n
+(ampersand followed by carriage return).
+
+Requests like 'put' may take a file as argument (like the subscribers file, or
+the welcoming message). In these cases, the actual text follows the 'put'
+request and spans till the end of the message. For example, here is a session
+where the owner would put the welcoming message:
+
+% mail $LISTPROC
+Subject: 
+
+put my-list my-password welcome
+
+Welcome to the my-list list. You may sign off any time by sending the 
+following request to $LISTPROC:
+
+        sign off my-list
+
+Enjoy!
+^D
+%
+
+5) More information
+-------------------
+See server(1) for system setup and management.
+See listproc(1) for list owner information on list management and their
+privileges.
+See list(1) for information on moderated lists and how to define user aliases
+and unwanted users. Also how to connect to news groups.
+See listproc(1) for a complete description of all user requests.
+EOF

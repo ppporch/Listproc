@@ -1,0 +1,99 @@
+#!/bin/sh
+#  			@(#)peer	6.2 CREN 97/01/14
+# 
+# 			Copyright (c) 1993-97 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+#
+
+
+#!/bin/sh
+# Shell script to add a peer list to a mailing list. 
+#
+# Usage: peer <LIST_ALIAS> <remote alias> <remote peer email address> 
+#	      <remote peer ListProcessor(tm) email address>
+# where:
+# LIST_ALIAS: a local list alias, capitalized, that is to be connected to
+#  the new peer.
+# remote alias: the peer's list alias on the remote machine
+# remote peer email address: full email address of the peer list to be added
+# remote peer ListProcessor(tm) email address: full email address of the server
+#   that handles the remote peer.
+
+PROG=`basename $0`
+
+
+#
+# Make sure LPDIR is set
+#
+if [ "$LPDIR" = "" ]; then
+  echo ""
+  echo Error: $PROG requires that the LPDIR environment variable be 
+  echo set to the full path of your ListProc installation.
+  echo ""
+  exit 1
+fi
+
+
+#
+# Check command line
+#
+if [ $# -lt 4 ]; then
+  echo Usage: $PROG \<LIST_ALIAS\> \<remote alias\> \
+\<remote $PROG email address\> \<remote $PROG ListProcessor\(tm\) email address\>
+  exit 1
+fi
+
+
+
+
+
+ARGS=$PROG\ $*
+DIR=${LPDIR}/lists/`echo $1 | tr '[a-z]' '[A-Z]'`
+REMOTE_ALIAS=`echo $2 | tr '[A-Z]' '[a-z]'`
+EMAIL=`echo $3 | tr '[A-Z]' '[a-z]'`
+REMOTE_SERVER=`echo $4 | tr '[A-Z]' '[a-z]'`
+REPORT=${LPDIR}/.report.server
+CONFIG=${LPDIR}/config
+MODE=NOACK
+FILE=$DIR/.peers
+shift; shift; shift; shift
+
+if [ ! -d $DIR ]; then
+  echo $DIR: no such list
+  exit 2
+fi
+if [ ! -r $CONFIG ]; then
+  echo Cannot open $CONFIG
+  exit 2
+fi
+if [ ! -r $FILE -o ! -w $FILE ]; then
+  echo Cannot open $FILE for read/write
+  exit 2
+fi
+
+echo >> $REPORT
+echo --- NEW MAIL HAS ARRIVED --- >> $REPORT
+echo $ARGS >> $REPORT
+LOCAL=`grep -i "^list *$REMOTE_ALIAS *$EMAIL" $CONFIG | awk '{ print $2 }'`
+if [ "$LOCAL" = "" ]; then
+  LOCAL=`grep -i "^server\  *$EMAIL" $CONFIG | awk '{ print $2 }'`
+  txt=server
+else
+  txt=list
+fi
+if [ "$LOCAL" != "" ]; then
+  echo Cannot add local $txt $LOCAL as $PROG to $FILE >&1 | tee -a $REPORT
+else
+  if [ "`grep -i $EMAIL $FILE`" != "" ]; then
+    echo $EMAIL\: Already subscribed as a $PROG in $FILE >&1 | tee -a $REPORT
+  else
+    echo $EMAIL $MODE $REMOTE_ALIAS $REMOTE_SERVER >> $FILE
+  fi
+fi
+echo Time/Date: `date` >> $REPORT
+exit 0

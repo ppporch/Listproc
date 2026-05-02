@@ -1,0 +1,46 @@
+#!/bin/sh
+#  			@(#)owners	6.2 CREN 97/01/14
+# 
+# 			Copyright (c) 1993-97 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/distrib/s.owners
+#
+
+# Example owners file.
+#
+# Syntax: email-address <list-alias | server> [preferences]
+#
+# valid preferences for owners are:
+#  CCSET, CCSUBSCRIBE, CCUNSUBSCRIBE, CCRECIPIENTS, CCREVIEW, CCINFORMATION,
+#  CCSTATISTICS, CCPRIVATE, CCRUN, CCIGNORE, CCERRORS, CCALL
+#
+# valid preferences for the manager are:
+#  CCGET, CCINDEX, CCSEARCH, CCLISTS, CCRELEASE, CCHELP, CCERRORS,
+#  CCDUPLICATES, CCIGNORE, CCALL
+#
+# A preference may be preceded by a - (dash) which turns it off.
+
+
+#
+# Set the CC-preferences for the ListProc site manager.  ListProc uses
+# the special list name "server" for these.  An example line is below.
+#
+manager@your.domain SERVER CCERRORS CCDUP CCIGNORE CCLISTS
+
+
+
+# Normally, you should never have to change anything below; the file is
+# automatically updated by the system:
+
+#
+# Example owner definitions and preferences:
+#
+# owner1@host.domain test CCERRORS 
+# owner2@-other-host.other-domain test CCALL -CCUNSUBSCRIBE
+
+

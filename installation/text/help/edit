@@ -1,0 +1,124 @@
+#! /bin/sh
+#                          edit
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: edit <list> <password> <file> [-nolock]
+
+        Obtain the specified file for editing; file can be one of:
+
+                subscribers, aliases, news, peers, ignored, info, welcome
+
+        Without -nolock, the file will be automatically locked and no
+        more list-specific requests that may alter the file will be
+        processed, from anybody else, until the list is UNLOCKed, or
+        the file is PUT back.
+
+        -nolock implies that the file is checked out for browsing only.
+
+        Format of each file:
+          - subscribers: 
+              the syntax of this file is very strict and one can
+              easily run into problems by not following a few simple
+              rules.
+
+              Each line describes one subscriber. His or her email
+              address starts in column 1; if there is a blank in
+              column 1 the whole line is considered blank and can be
+              used later on to subscribe a new user; thus it's easy to
+              wipe out subscribers by mistake.  A blank and the user's
+              mail mode in caps follow next (one of ACK, NOACK,
+              DIGEST, DIGEST-MIME, DIGEST-NOMIME or POSTPONE), then
+              another blank and the assigned password, then another
+              blank and the conceal attribute in caps (YES or NO), and
+              finally another blank and the user's name.
+
+              It is possible to see lines that contain blanks only;
+              this is fine; when a user is removed his/her entry is
+              simply overwritten with blanks. These blank lines are
+              removed when the subscribers file is automatically
+              resorted once a day.
+
+              Simple rules to follow to assure the integrity of the file:
+                - never put a space in column 1
+                - never put more than one blank between arguments
+                - always capitalize the mail mode and the conceal attribute
+
+              Example (assume it starts in column 1):
+                user@foo.bar ACK my_pass NO Foo Bar
+
+          - aliases:
+              each line describes one alias; the first argument is the
+              regular expression that will translate the incoming
+              address, the second argument is the result of aliasing,
+              i.e. how you want the new address to look like, based on
+              the aliasing rules.  Comments are allowed if they start
+              with a '#' character in column 1.
+
+              Example:
+                # The following removes source routing:
+                ^\<*@.*:(.+)@(.+\.[^\>]+)\>* \1@\2
+
+
+          - ignored:
+              same as the aliases file, but with just one regular
+              expression per line; each regular expression describes
+              addresses to be ignored.
+
+              Example:
+                ^list_name@host.domain$
+
+          - news:
+              Each line describes both a news group and a moderator in
+              case the list is moderated; one of these is used at any
+              one time depending on each list's settings. The same
+              restrictions apply as in the subscribers file.
+
+              First, the moderators address is listed, then a blank
+              and NOACK, and finally a blank and the newsgroup's name.
+
+              Example:
+                moderator@foo.bar NOACK alt.test
+
+          - peers:
+              Each line describes a list peer. The same restrictions
+              apply as in the subscribers file.
+
+              First, the peer's email address appears, then a blank
+              and NOACK, then the peer's alias (i.e. the alias with
+              which the list is known at the remote site), and finally
+              another blank and the remote listproc's email address
+              for handling requests.
+
+              Example:
+                foo@remote.site NOACK foo listproc@remote.site
+
+          - info and welcome:
+              These are plain ASCII text files.
+EOF
+
+
+
+

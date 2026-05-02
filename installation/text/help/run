@@ -1,0 +1,38 @@
+#! /bin/sh
+#                          @(#)run	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.run
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: run <list> [<password> <cmd [args]>]
+
+        Run the specified command (arguments may be optional) and receive the
+        output from stdout and/or stderr. You must be a member of the list,
+        and you must obtain the password and the command's name and optional
+        arguments from the owner.
+
+        In its simplest form (run <list>), return all commands that may be
+        executed by this list's subscribers.
+EOF

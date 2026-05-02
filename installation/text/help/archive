@@ -1,0 +1,107 @@
+#! /bin/sh
+#                          @(#)archive	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.archive
+#
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: archive <archive name> <password> <action> [args]
+
+        Manager:
+          archive <archive name> <password> CREATE | MODIFY <password XXX> 
+                  [, directory <archive-path | ->]
+                  [, private <user-password> | public]
+                  [, compressed | uncompressed]
+                  [, split [chunk size] | unsplit]
+                  [, afd-fui | no-afd-fui]
+                  [, owner <addr> [privileges]]
+                  [, remove-owner <addr> [addr] ...]
+          archive <archive name> <password> REMOVE
+
+        Owners and Manager:
+          archive <archive name> <password> ADD <filename> [description]
+          archive <archive name> <password> DELETE <filename> [filename] ...
+          archive <archive name> <password> UPDATE <filename> [description]
+          archive <archive name> <password> REVIEW
+
+        Manipulate archives. Each archive has a configuration file which
+        can be modified by the manager only. Access may be granted to archive
+        owners by specifying their addresses and privileges; privileges are
+        ADD, UPDATE and DELETE. UPDATE turns on ADD as well. When configuring
+        the archive, the access password must be specified (XXX). All other
+        arguments are optional and have default values (directory -, public,
+        uncompressed, unsplit, no-afd-fui, no archive owners).
+
+        If an archive is tied to a list, the list's owners also have REVIEW
+        access, and can use the list's password; the manager will have to 
+        give them specific access (i.e. make them archive owners as well)
+        in order to be able to manipulate files.
+ 
+        Valid arguments for ARCHIVE creation and modification are:
+                password - specify the owner access password
+                directory - specify the directory to archive files into;
+                        a dash specifies the default
+                private - make the archive private (see get, index, search)
+                compressed/uncompressed - whether files will be kept in
+                        compressed format
+                split/unsplit - specify whether archived files are to be
+                        split on the way into the archive (see farch(1));
+                        the default chunk size is 64 Kb
+                afd-fui/no-afd-fui - specify whether files are available
+                        through AFD/FUI (see afd, fui)
+                owner - specify an archive owner and his/her privileges;
+                        valid privileges are ADD, UPDATE and DELETE
+                remove-owner - remove the archive owner(s)
+
+        Valid arguments for file manipulation are:
+                ADD filename [description] - specify the filename to archive
+                        the contents under; an optional description may
+                        be specified that will show up in an INDEX request
+                UPDATE filename [description] - update the contents of
+                        an existing file
+                DELETE filename(s) - delete the specified files from the
+                        archive
+
+        The contents of the file to archive follow the archive request and
+        span until the end of the mail message. Beware of signature lines
+        which will be part of the archived file as well.
+
+        Examples, manager:
+
+        archive test pw create pass XXX, directory /tmp, split 128,
+        afd-fui, owner foo@bar.com add delete update, owner fum@bar.com
+        add
+
+        archive test pw review
+
+        archive test pw remove
+
+        File examples, owners and manager:
+
+        archive test XXX add test-file Here is a test file
+        contents go here
+        and here
+        ^D
+
+        archive test XXX del test-file
+EOF

@@ -1,0 +1,107 @@
+#!/bin/sh
+#  			@(#)news	6.2 CREN 97/01/14
+# 
+# 			Copyright (c) 1993-97 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+
+
+
+#!/bin/sh
+# Shell script to add a news group to a mailing list.
+#
+# Usage: news <LIST_ALIAS> <news group> <news email address> <news mode>
+#
+# where:
+# LIST_ALIAS: a local list alias, capitalized, that is to be connected to
+#  the news group.
+# news group: the news group name (e.g. alt.sex)
+# news email address: full email address of the news source.
+# news mode: "receive" if the local list will only be receiving articles,
+#  or "send_receive" if the local list will post to the news group as
+#  well.
+# Notice: After 7.0 the top level .ignored file is combined with a list's
+# file, so we no longer append the address to the top level .ignored file.
+
+PROG=`basename $0`
+
+
+#
+# Make sure LPDIR is set
+#
+if [ "$LPDIR" = "" ]; then
+  echo ""
+  echo Error: $PROG requires that the LPDIR environment variable be 
+  echo set to the full path of your ListProc installation.
+  echo ""
+  exit 1
+fi
+
+
+#
+# Check command line
+#
+if [ $# -lt 4 ]; then
+  echo Usage: $PROG \<LIST_ALIAS\> \<news group\> \<$PROG email address\> \<$PROG mode\>
+  exit 1
+fi
+
+
+
+ARGS=$PROG\ $*
+DIR=${LPDIR}/lists/`echo $1 | tr '[a-z]' '[A-Z]'`
+REPORT=${LPDIR}/.report.server
+CONFIG=${LPDIR}/config
+FILE=$DIR/.news
+GROUP=`echo $2 | tr '[A-Z]' '[a-z]'`
+EMAIL=`echo $3 | tr '[A-Z]' '[a-z]'`
+shift; shift; shift
+
+if [ ! -d $DIR ]; then
+  echo $DIR: no such list
+  exit 2
+fi
+if [ ! -r $CONFIG ]; then
+  echo Cannot open $CONFIG
+  exit 2
+fi
+if [ ! -r $FILE -o ! -w $FILE ]; then
+  echo Cannot open $FILE for read/write
+  exit 2
+fi
+if [ "$1" = "receive" ]; then
+  MODE=POSTPONE
+elif [ "$1" = "send_receive" ]; then
+  MODE=NOACK
+else
+  echo Token $1 not recognized
+  exit 2
+fi
+
+echo >> $REPORT
+echo --- NEW MAIL HAS ARRIVED --- >> $REPORT
+echo $ARGS >> $REPORT
+LOCAL=`grep -i "^list *$REMOTE_ALIAS *$EMAIL" $CONFIG | awk '{ print $2 }'`
+if [ "$LOCAL" = "" ]; then
+  LOCAL=`grep -i "^server\  *$EMAIL" $CONFIG | awk '{ print $2 }'`
+  txt=server
+else
+  txt=list
+fi
+if [ "$LOCAL" != "" ]; then
+  echo Cannot add local $txt $LOCAL as $PROG to $FILE >&1 | tee -a $REPORT
+else
+  if [ "`grep -i $EMAIL $FILE`" != "" ] || [ "`grep -i $GROUP $FILE`" != "" ]
+  then
+    echo $EMAIL\: Already subscribed as a $PROG group in $FILE >&1 | \
+         tee -a $REPORT
+  else
+    echo $EMAIL $MODE $GROUP >> $FILE
+  fi
+fi
+echo Time/Date: `date` >> $REPORT
+exit 0

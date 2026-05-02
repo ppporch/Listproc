@@ -1,0 +1,41 @@
+#-*-makefile-*-
+#
+#
+
+
+# define your compiler (some source files may need different compiler):
+CC		= gcc -fwritable-strings
+
+# define special symbols (system, preprocessor options, etc):
+DEFINES		= -DHAVE_SELECT_H -DHAVE_SETJMP_H \
+		  -DBUFFSIZ=10240 -DNO_MTA_REST -DMMAP \
+		  -DUSE_CARRIAGE_RETURN_LINEFEED \
+		  -DSPEED_UP_SUBSCRIBER_LOOKUPS
+
+# define the optimization level
+OPTIMIZATION	= -gg
+
+# define where the preprocessor is:
+CPP		= /lib/cpp
+
+# define linking options and libraries
+LDFLAGS		= $(OPTIMIZATION)
+LIBS		= -lsocket -lnsl
+MATH_LIB	= -lm
+
+
+# Define the library creation command
+RANLIB		= ranlib
+#RANLIB		= ar ts
+
+#SHELL		= /bin/sh
+SHELL		= /usr/local/bin/bash
+
+#ECHO_C 		= \c
+ECHO_N		= -n #Note the space after the -n.  This is important!!
+
+
+PORTNAME    = solaris24 
+
+
+

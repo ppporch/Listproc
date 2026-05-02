@@ -1,0 +1,468 @@
+#! /bin/sh
+#-*-indented-text-*-
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.configuration
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: configuration <list> <password> [<option> [args] [, <option> [args] ...]]
+Syntax: configure <list> <password> [<option> [args] [, <option> [args] ...]
+Syntax: global configuration <password> [<option> [args] [, <option> [args] ...]
+
+
+        Get or set a list's configuration options; without any of the options
+        below, get the current settings. Options are a comma-separated list
+        of one or more of the following keywords (options marked with * can
+        be issued by the manager only; <> specify required arguments, []
+        specify optional arguments, and | separates choices; options can be
+        abbreviated to the shortest non-ambiguous strings; options marked
+        with + are relative, i.e. their arguments are either appended to or
+        subtracted from the current settings; otherwise, options replace
+        the previous settings).
+
+        This command can affect a specific list only, or all lists on the
+        server (controlled by the "global" keyword); only the manager can
+        configure lists globally:
+
+*       ARCHIVE [dir] [filespec] [arch-name] [password] [messages|digests]
+                Turn on archiving for said list by the manager, optionally
+                specifying a destination directory for files, a file 
+                specification, an archive name, password or whether messages
+                or digests are to be archived. By default, every list's
+                messages are stored in "default_arch_dir" as defined in the
+                config file, as logyymm, with the archive named after the list,
+                and no password. Filespecs can contain any lower case
+                characters of the alphabet, numerals, the underscore and one or
+                more of the following special character sequences:
+
+                    %a -- contents of Archive-Name header line 
+                            (cannot be used if arching digests)
+                    %c -- the current message count
+                    %d -- day of month (01 - 31)
+                    %h -- month name (Jan - Dec)
+                    %j -- julian date (001 - 366)
+                    %m -- month (01 - 12)
+                    %n -- issue number (extracted from Volume # Number # line)
+                    %v -- volume number (extracted from Volume # Number # line)
+                    %w -- week number of month (a - f)
+                    %y -- year (00 - 99)
+                    %Y -- year (1900 on)
+                    %1 -- first word of first non-blank line of file
+                    %# -- digest number (if archiving digests)
+                    %% -- the character %
+
+                A dash (-) can be used in place of any of the arguments above
+                as a place holder.
+
+                For example, the system default is defined as log%y%m.
+
+                %a expects the Archive-Name: header line in the header section
+                or anywhere in the message body (that header line specifies the
+                archive name to store to -- this is how various "source" news
+                groups archive messages).
+
+                %v and %n are usually specified together and expect the first
+                line of the body of the message to be something like this:
+
+                        Volume 3 Number 45
+        ARCHIVE [password] [messages|digests]
+                Turn on archiving for said list by the owners (see above).
+        NO-ARCHIVE
+                Turn off archiving of messages or digests.
+*       COMPRESSED-ARCHIVES
+                Keep logs in compressed format.
+*       UNCOMPRESSED-ARCHIVES
+                Keep logs in uncompressed format.
+
+        ARCHIVES-TO-ALL
+                Allow anyone to get the list's index of logs, and the logs
+                themselves.
+        ARCHIVES-TO-OWNERS
+                Only owners have access to the list's index of logs and the
+                logs themselves.
+        ARCHIVES-TO-SUBSCRIBERS
+                Only owners and subscribers have access to the list's index
+                of logs and the        logs themselves.
+
+        AUTO-DELETE-SUBSCRIBERS
+                Turn on auto-deletion of subscribers whose addresses cause
+                delivery problems.
+        NO-AUTO-DELETE-SUBSCRIBERS
+                Turn off auto-deletion.
+
+        CLOSED-SUBSCRIPTIONS
+                Do not accept any more subscriptions.
+        OPEN-SUBSCRIPTIONS
+                Open up subscriptions again.
+        OWNER-SUBSCRIPTIONS
+                Subscriptions are monitored by the owners or the subscription
+                managers (see below).
+        WIDE-OPEN-LIST
+                Open up subscriptions, restore the list's visibility and open
+                up review, statistics, archives and postings to all.
+
+        COMMENT <string>
+                Specify the one-liner content of the X-Comment header line.
+        NO-COMMENT
+                Trash the contents of the X-Comment header line.
+
+        DEFAULT <mailmode> <value> [<mailmode> <value>] ...
+                address variable|fixed
+                mail ack|noack|postpone|digest|digest-mime|digest-nomime
+                password <string>
+                conceal yes|no
++               preference CCoption
+
+                Set the default subscription options; any of the above values
+                can be the empty string "" or '' which stands for the system
+                default. CCoption can be any of CCSET, CCSUBSCRIBE,
+                CCUNSUBSCRIBE, CCRECIPIENTS, CCINFORMATION, CCSTATISTICS,
+                CCPRIVATE, CCRUN, CCIGNORE, CCERRORS, CCALL
+
++       DELIVERY-ERRORS-TO <address> [address] ...
+                Specify the recipients of delivery error messages.
++       REMOVE-ERRORS-TO <address> [address] ...
+                Remove address(es) from the above list.
+
+        DIGEST <frequency> [when] [lines bytes]
+               daily hh:mm
+               weekly Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday
+               monthly
+
+                Turn on digesting of messages and distribute them at the
+                specified time or day (monthly digests are distributed on the
+                first day of the month). If a number of lines or size in bytes
+                (or both) are specified, digests will be distributed as soon
+                as these limits are exceeded -- thus, it is possible to send
+                multiple digests within the specified time frame. If changing
+                these limits only, [when] can be substituted with - as a
+                place holder (one - covers all cases).
+        NO-DIGESTS
+                Turn off collections of digests.
+
++       DISABLE <request> [request] ...
+                Disable use of the specified request(s).
++       ENABLE <request> [request] ...
+                Enable use of the specified request(s).
++       SET-DISABLE <mode> [value] [<mode> [value]] ...
+                    mail ack|noack|postpone|digest
+                    conceal yes|no
+                    password
+
+                Disable the specified SET value(s).
++       SET-ENABLE <mode> [value] [<mode> [value]] ...
+                    mail ack|noack|postpone|digest
+                    conceal yes|no
+                    password
+
+                Enable the specified SET value(s).
+
+        FORWARD-REJECTS
+                Forward all listproc-generated error messages to the owners.
+        DONT-FORWARD-REJECTS
+                Forward all listproc-generated error messages to the senders.
+
+        KEEP-RESENT-LINES
+                Keep Resent: header lines.
+        DONT-KEEP-RESENT-LINES
+                Don't keep Resent: header lines.
+
+        REFLECTOR
+                Reflect incoming header lines to output
+        NO-REFLECTOR
+                Turn off mail reflector
+
+        HIDDEN-LIST
+                Hide the list from "lists" and "index" requests and restrict
+                access to archives, review and statistics to subscribers and
+                owners only.
+        VISIBLE-LIST
+                Turn on visibility but do not affect the rest of the options.
+
+        PUBLISHED-LIST
+                Make the list worldwide accessible via other listprocs too.
+        UNPUBLISHED-LIST
+                Make the list accessible via the local listproc only.
+
+*       MANAGER-CONTROLLED
+                Only the manager will be able to add and remove owners,
+                make the list published or not, reset the list's password,
+                set or unset a MESSAGE-LIMIT, and determine automatic deletion
+                of subscribers or not.
+*       OWNER-CONTROLLED
+                Reset normal operation.
+
+        MAX-MESSAGES-PER-DAY <number>
+        MESSAGE-LIMIT <number>
+                Specify the maximum number of messages to be processed in a one
+                day (can be reset with the FREE request).
+        NO-MESSAGE-LIMIT
+                Turn off the above restriction.
+
++       MODERATED-EDIT [address] ...
+                Make the list moderated by providing the ability to edit 
+                messages, and optionally specify moderator addresses, otherwise
+                messages will be sent to the owners for approval.
++       MODERATED-NO-EDIT [address] ...
+                Make the list moderated by letting the moderators simply
+                approve or discard submitted messages, and optionally specify
+                moderator addresses, otherwise messages will be sent to the
+                owners for approval.
+        UNMODERATED
+                No postings are moderated.
++       REMOVE-MODERATORS <address> [address]
+                Remove moderator address(es).
+
++       OWNERS <address> [address] ...
+                Specify new owner addresses.
++       REMOVE-OWNERS <address> [address] ...
+                Remove owners.
+                
+        PASSWORD <string>
+                Reset the list's password to the new string.
+
+*       THREADS <number>
+                Define the maximum number of threads to use for mail delivery;
+                should be at least 1 and <= the system-wide number - 1;
+                default is 1. Keep in mind that this number is actually a hint
+                to the server, which may allocate fewer threads if not enough
+                threads are available at that time.
+
+*       MTA-HOST <host> [port]
+                Define an alternate host and/or port number to use for mail
+                delivery; if host is the empty string, "", then the system
+                will switch to using the mta host defined in the global config
+                file. This option is valid only when using the system
+                mailmethod. If no port is specified, 25 will be used by
+                default.
+
++       SUBSCRIPTION-MANAGERS <address> [address] ...
+                Specify who will be approving subscriptions when the owners
+                decide to monitor subscriptions (default is the owners
+                themselves).
++       REMOVE-SUBSCRIPTION-MANAGERS <address> [address] ...
+                Remove such addresses.
+        REMOVE-ALL-SUBSCRIPTION-MANAGERS
+                Short cut for the above.
+
+        REPLY-TO-LIST
+                Set the Reply-To: header line to the list's address unless
+                a Reply-To: is present in the sender's message, in which case
+                it is preserved.
+        REPLY-TO-LIST-ALWAYS
+                Set the Reply-To: header line to the list's address all the
+                time.
+        REPLY-TO-SENDER
+                Set the Reply-To: header line to the sender's address unless
+                a Reply-To: is present in the sender's message, in which case
+                it is preserved.
+        REPLY-TO-SENDER-ALWAYS
+                Set the Reply-To: header line to the sender's address all the
+                time.
+        REPLY-TO-OMITTED
+                Do not put a Reply-To: header line, unless a Reply-To: is
+                present in the sender's message, in which case it is
+                preserved.
+
+        REVIEW-TO-ALL
+        REVIEW-BY-ALL
+                Open review to everyone.
+        REVIEW-TO-OWNERS
+        REVIEW-BY-OWNERS
+                Restrict review to owners only.
+        REVIEW-TO-SUBSCRIBERS
+        REVIEW-BY-SUBSCRIBERS
+                Restrict review to subscribers and owners only.
+        REVIEW-TO-SUBSCRIBERS-SHORT
+        REVIEW-BY-SUBSCRIBERS-SHORT
+                Restrict the review of list settings to subscribers
+                and owners only, but prevent subscribers from viewing
+                the list of subscribers.
+
+        STATISTICS-TO-ALL
+        STATISTICS-BY-ALL
+        STATS-TO-ALL
+        STATS-BY-ALL
+                Open statistics to everyone.
+        STATISTICS-TO-OWNERS
+        STATISTICS-BY-OWNERS
+        STATS-TO-OWNERS
+        STATS-BY-OWNERS
+                Restrict statistics to owners only.
+        STATISTICS-TO-SUBSCRIBERS
+        STATISTICS-BY-SUBSCRIBERS
+        STATS-TO-SUBSCRIBERS
+        STATS-BY-SUBSCRIBERS
+                Restrict statistics to subscribers and owners only.
+
+        SEND-BY-ALL
+                Open up postings to everyone, including non-subscribers.
+        SEND-BY-OWNERS
+                Restrict postings to owners only (one-way list - notice this
+                does not imply a moderated list).
+        SEND-BY-OWNERS-CONFIRM
+                Same as above, but the senders are required to put the 
+                following line somewhere in the body of the message:
+                        Confirm: <password>
+                where <password> is either the list's or the personal password. 
+        SEND-BY-SUBSCRIBERS
+                Restrict postings to subscribers and owners only.
+        SEND-BY-SUBSCRIBERS-CONFIRM
+                Same as above, but the senders are required to put the 
+                following line somewhere in the body of the message:
+                        Confirm: <password>
+                where <password> is either the list's or the personal password. 
+
+        CONFIRM-ALL-SUBSCRIPTIONS
+        DONT-CONFIRM-ALL-SUBSCRIPTIONS
+                Turn on or off subscription confirmation; users are required
+                to email back a cookie before they are actually subscribed
+        CONFIRM-ALL-UNSUBSCRIPTIONS
+        DONT-CONFIRM-ALL-UNSUBSCRIPTIONS
+                Turn on or off unsubscription confirmation; users are required
+                to email back a cookie before they are actually removed from
+                the list
+
+        ALLOW-EMPTY-SUBSCRIBER-NAMES
+        DONT-ALLOW-EMPTY-SUBSCRIBER-NAMES
+                Should users be required to provide a name when they
+                subscribe or not.
+
+        ALLOW-ALTERNATE-ADDRESS-COMMANDS
+        DONT-ALLOW-ALTERNATE-ADDRESS-COMMANDS
+                Control whether "FOR address" is supported with SET,
+                SUBSCRIBE and UNSUBSCRIBE for regular users, i.e. it controls
+                the ability of these users to execute commands on behalf of
+                other addresses. In that case all such requests will
+                require confirmation.
+
+        MIME-MODERATION-MESSAGES
+        NON-MIME-MODERATION-MESSAGES
+                Turn on or off MIME encapsulation of moderation
+                messages.  MIME encapsulation will preserve the
+                internal attachements in moderated messages, but it
+                may also cause problems for moderators with some mail
+                programs (e.g. Groupwise).  Additionally, turning off
+                MIME encapsulation of moderator messages may simplify
+                the moderation process for MODERATED-EDIT lists.
+
+
+        LISTNAME-IN-SUBJECT
+        LISTNAME-NOT-IN-SUBJECT
+                Control whether or not the list's name should be added
+                to the Subject: line of outgoing list messages.  If
+                this is set, the Subject: lines will look like this:
+
+                      Subject: [LISTNAME:num] Original Subject
+
+                The number after the list name shows that this is the
+                num-th message to the list.
+
+
+*       OUTBOUND-MESSAGE-FILTER <options>
+                This specifies an external program that will be
+                executed after ListProc's loop detection, posting
+                privilege, and moderation checks but before the
+                message is sent out to the list.  Among other things,
+                this could be used to add a standard footer to
+                outgoing messages, remove large attachments, etc.  The
+                options are as follows:
+
+                    off
+                       disable the message filter for this list
+
+                    default   
+                       use the system default filter command (if one
+                       has been defined)
+
+                    program /path/to/program [program_args]
+                       Specify the path to the program you want to use
+                       for modifying outgoing messages.  Relative
+                       paths are taken relative to the ListProc
+                       installation directory (LPDIR).
+
+
+                If enabled, the filter program will be invoked with
+                any arguments you give it.  In addition, ListProc adds
+                the following to the end of the argument list:
+
+                    --infile INFILE --outfile OUTFILE --list LISTNAME
+
+                where INFILE is the filename of the original message
+                and OUTFILE is the filename to which the modified
+                message should be written.  (If OUTFILE doesn't exist
+                after the filter exits, ListProc will simply send out
+                the original message as-is.)
+
+
+*       WEB-ARCHIVE <options>
+                Specify the program to use for storing web archives.
+                This command is available to the system manager only.
+                The options are as follows:
+
+                    off
+                       disable web archives for this list
+
+                    default   
+                       use the system default web archive command (if
+                       one has been defined) 
+
+                    program /path/to/program [program_args]
+                       Specify the path to the program you want to use
+                       for web archives.  Relative paths are taken
+                       relative to the ListProc installation directory
+                       (LPDIR).
+
+                If enabled, ListProc will invoke the web archive
+                program with any arguments you specify.  In addition,
+                ListProc will add the following to the end of the
+                program's argument list:
+
+                    --list LISTNAME --arch ARCHIVENAME
+
+                The message to be archived is sent to the program's
+                standard input.
+
+        Owner example:
+
+                configuration test pass1 archive - messages, &
+                archives-to-owners, review-by-all, auto-delete, &
+                owner-subscriptions, commment Test List, &
+                default mail ack conceal no password XyX &
+                preference CCSUBSCRIBE preference CCUNSUBSCRIBE, &
+                set-disable mail digest conceal yes password, &
+                delivery-errors-to root@your-site server@your-site, &
+                digest daily 15:30, message-limit 100, &
+                moderated-edit you@your-site, owners foo@bar.com, &
+                subscr foo@your-site, reply-to-list-always &
+                confirm-subscriptions
+
+        Manager example:
+
+                conf test pass1 archive /tmp - - - digests, &
+                compressed-archives, message-limit 100, mta-host listproc.net
+
+                global conf pass1 archive /tmp - - - digests, message-limit &
+                100, reply-to-omitted, threads 5
+EOF

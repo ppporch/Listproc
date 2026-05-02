@@ -1,0 +1,585 @@
+#!/bin/sh
+ 
+
+######################################################################
+#
+# global definitions for useful things...
+#
+######################################################################
+
+# new binaries to install
+bins="dbglpfiles ilp listproc serverd catmail farch list pqueue start \
+      revdb fwin rev tlock lp2"
+
+# old binaries to save
+oldbins="dbglpfiles ilp listproc serverd catmail farch list pqueue start \
+      fwin rev tlock queued"
+
+bins82="dbglpfiles ilp listproc serverd catmail farch list pqueue start \
+      revdb fwin rev tlock lp2"
+
+# Other files to save
+savefiles="archives welcome.global welcome.live help .ignored .aliases \
+	config owners support samples doc signoff.global unwanted.hosts" 
+
+basedir=`dirname $0`
+distdir=`(cd $basedir; pwd)`
+
+binarch=`ls $distdir/bin*Z 2>/dev/null | tail -1`
+if [ ! -f "$binarch" ]; then
+	echo "ERROR: Can't find binary archive file (bin\*Z) in $distdir."
+	exit 1
+fi
+
+textarch=`ls $distdir/text*Z 2>/dev/null | tail -1`
+if [ ! -f "$textarch" ]; then
+	echo "ERROR: Can't find text archive file (text\*Z) in $distdir."
+	exit 1
+fi
+
+
+VER="8.2"
+
+
+. $distdir/install.funcs
+
+
+#
+# Determine how "echo" works on this system.
+#
+foo=`echo "a\c"; echo "b"`
+if [ "$foo" = "ab" ]; then
+	dashN=""
+	dashC="\\c"
+else
+	dashN="-n "
+	dachC=""
+fi
+
+
+
+
+######################################################################
+#
+# Friendly banner...
+#
+######################################################################
+
+cat <<EOF
+
+
+            ListProc(tm) version $VER Installation Utility
+         ---------------------------------------------------
+
+                       Copyright (c) 1993-98 by
+    the Corporation for Research and Educational Networking (CREN)
+
+EOF
+
+
+
+######################################################################
+#
+# Do a quick check, to make sure we aren't installing as root
+#
+######################################################################
+whoami | grep -i root > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	cat <<EOF
+
+You appear to be performing this installation as root.  This will install 
+ListProc's files as root, which is generally not recommended.
+EOF
+
+    echo $dashN "Would you like to continue? [y/N]: $dashC"
+    read x
+    if [ "$x" != "y"  -a  "$x" != "Y" ] ; then
+		cat <<EOF
+Please log in as your ListProc user, and re-run the installation script.
+EOF
+		exit 0
+    fi
+    echo ""
+
+
+fi
+
+
+
+######################################################################
+#
+# Figure out the desired installation directory.
+#
+######################################################################
+
+done=0
+if [ $done -eq 0 -a -n "$LPDIR" ]; then
+    echo The LPDIR environment variable is set to $LPDIR.  
+    echo $dashN "Would you like to install there? [y/N]: $dashC"
+    read x
+    if [ "$x" = "y"  -o  "$x" = "Y" ] ; then
+        done=1
+    fi
+fi
+
+if [ $done -eq 0 ]; then
+    echo ""
+    echo The current directory is `pwd`.  
+    echo $dashN "Would you like to install there? [y/N]: $dashC"
+    read x
+    if [ "$x" = "y"  -o  "$x" = "Y" ] ; then
+        LPDIR=`pwd`
+        done=1
+    fi
+fi
+
+if [ $done -eq 0 ]; then
+    cat <<EOF
+
+Please enter the path to the directory in which you want to install:
+EOF
+
+    read LPDIR
+fi
+
+if [ ! -d $LPDIR ]; then
+    cat <<EOF
+
+$LPDIR does not exist.  Please correct this and re-run 
+the installation script.
+
+EOF
+fi
+
+#make sure we've got a full path name
+cd $LPDIR
+LPDIR=`pwd`
+
+echo ""
+echo Installing in $LPDIR....  
+echo $dashN "Press RETURN to continue.  $dashC"
+read x
+
+export LPDIR
+
+
+######################################################################
+#
+# Determine whether or not this is an upgrade
+#
+######################################################################
+if [ -x $LPDIR/serverd ]; then
+    upgrade=yes
+else
+    upgrade=no
+fi
+ 
+
+######################################################################
+#
+# Alert if not an upgrade, to make sure we catch all cases
+#
+######################################################################
+if [ "$upgrade" = "no" ]; then
+    cat <<EOF
+
+I don't see the standard ListProc binaries in $LPDIR
+so I will assume this is a new installation.  This means I will NOT
+try to save any old files in this directory.  
+EOF
+
+    echo $dashN "Is this a new installation? [Y/n]: $dashC"
+    read x
+    if [ "$x" = "n"  -o  "$x" = "N" ] ; then
+        upgrade="yes"
+    fi
+fi
+
+
+
+######################################################################
+#
+# Copy files to prepare for an upgrade
+#
+######################################################################
+if [ "$upgrade" = "yes" ]; then
+
+    cat <<EOF
+It appears that you are upgrading from a previous version of ListProc.
+EOF
+
+	#
+	# Stop previous processes
+	#
+ps -ax 2>/dev/null | grep -v grep | grep $LPDIR/serverd > /dev/null 
+e1=$?
+ps -ef 2>/dev/null | grep -v grep | grep $LPDIR/serverd > /dev/null
+e2=$?
+if [ $e1 -eq 0 -o $e2 -eq 0 ] ; then
+    echo "Killing old ListProc processes...."
+        ./start -ck
+fi
+
+
+    #
+    # alert the user to the current action
+    #
+    cat <<EOF
+
+I now will save your old binaries and configuration files so you can
+easily revert to your current version if there are any problems with
+this installation.
+EOF
+
+    echo $dashN "Would you like to continue? [Y/n]: $dashC"
+    read x
+    if [ "$x" = "n"  -o  "$x" = "N" ] ; then
+        exit 0
+    fi
+    echo ""
+
+    #
+    # Figure out the current version
+    #
+    version=`strings $LPDIR/farch | \
+            grep 'ListProc.*version.*by CREN' | \
+            sed -e "s/^.*version //" -e "s/ by CREN.*$//" `
+    if [ "$version" = "" ]; then
+        version=old
+    fi
+
+	# some special stuff for version 8.2
+	echo $version | grep '8.2' > /dev/null
+	if [ $? -eq 0 ]; then
+		oldbins=$bins82
+ 
+		nv=`strings farch | grep "$version/" | sed -e 's!/!-!g' -e 's!:!!g' `
+		if [ "$nv" = "" ]; then
+			nv=`strings farch | grep "$version\.../" | sed -e 's!/!-!g' -e 's!:!!g' `
+		fi
+		if [ "$nv" != "" ]; then
+			version=$nv
+		fi
+
+	fi
+
+    archive="lp-save.$version.tar"
+
+
+	#
+	# Check for previous binary archive
+	#
+ 	nums="0 1 2 3 4 5 6 7 8 9"
+ 	if [ -f $archive ]; then
+ 		echo "A previous saved binary archive has been found."
+
+ 		for n in $nums; do
+ 			if [ ! -f $archive.$n ]; then
+ 				break;
+ 			fi
+ 		done
+
+ 		if [ -f $archive.$n ]; then
+ 			cat <<EOF
+There are too many previous saved archives.  Please remove some of
+these, and retry the installation.
+EOF
+ 			exit 1
+ 		else
+ 			echo It has been renamed to $archive.$n
+ 			mv $archive $archive.$n
+ 		fi
+ 	fi
+
+
+    #
+    # Move bins and copy configs...
+    #
+    echo "Saving old bins and config files to $LPDIR/$archive...."
+    rm -f $archive
+    tar cf $archive config owners lists/*/config $oldbins debug \
+        | grep -vi "can't add"
+#   if [ ! $? -eq 0 ]; then
+#       cat <<EOF
+
+# Error archiving old files.  If you continue, you won't be able to revert to 
+# your previous installation.
+# EOF
+#       echo $dashN "Continue? [y/N]: $dashC"
+#       read x
+#       if [ ! "$x" = "Y"  -a  ! "$x" = "Y" ]; then
+#           exit 0
+#       fi
+#   else
+        cat <<EOF
+
+Your old configuration and binary files have been saved in $archive.
+To revert to your old version of ListProc, do the following:
+
+    cd $LPDIR
+    ./stop
+    tar -xvf $archive
+    ./start
+
+Please note that this will undo any configuration changes you make
+after this point.
+EOF
+
+    echo "Press RETURN to continue."
+    read x
+
+#   fi
+
+
+    #
+    # Save other files that may have been modified
+    #
+    cat <<EOF
+
+Temporarily renaming existing files to avoid overwriting when I unpack the
+distribution archive....
+EOF
+    for file in $savefiles; do
+        echo "    $file -> O$file"
+        mv -f $file O$file 2>/dev/null
+        rm -rf N$file
+    done
+
+fi 
+
+
+
+######################################################################
+#
+# Install the new binaries and files.
+#
+######################################################################
+
+# Explicitly remove severd, since we can't un-tar over a file owned by root.
+rm -f serverd
+
+# Unpack the binaries
+echo ""
+echo Unpacking the binaries....
+zcat $binarch | tar xf - 
+
+# Unpack the text distribution files
+echo Unpacking other files....
+zcat $textarch | tar xf - 
+
+# restore the permissions on the LPDIR directory, to allow appropriate
+# execute access
+chmod a+x $LPDIR
+
+
+
+
+######################################################################
+#
+# If this is an upgrade, put back the original text files... 
+#
+######################################################################
+if [ "$upgrade" = "yes" ]; then
+    
+    echo ""
+    echo Restoring renamed files....
+    for file in $savefiles; do
+		if [ -f "O$file" -o -d "O$file" ]; then
+			echo $dashN "    $file -> N$file;    $dashC"
+			mv -f $file N$file 2>/dev/null
+			echo "O$file -> $file"
+			mv -f O$file $file 2>/dev/null
+		fi
+    done
+
+    cat <<EOF
+
+Your original files have been restored.  After the installation, you
+should examine the new versions of these files and directories to see
+if there are any changes you would like to use.  If you want to use
+one of the newer versions you will have to manually remove the old
+version and rename the new version to the correct filename.
+EOF
+
+    echo "Press RETURN to continue."
+    read x
+fi
+
+
+
+
+######################################################################
+#
+# Rewrite any files that have hard-coded paths...
+#
+######################################################################
+if [ "$upgrade" = "yes" ]; then
+    archfiles=`ls Narchives/*/[A-Z]* 2>/dev/null`
+else
+    archfiles=`ls archives/*/[A-Z]* 2>/dev/null`
+fi
+
+echo ""
+echo Remaking directory paths in new archive files....
+for file in $archfiles; do
+    echo "    $file"
+    remake $file '\[INSTALL_PATH\]' $LPDIR
+done
+
+
+
+######################################################################
+#
+# Set permissions on new binaries
+#
+######################################################################
+
+echo ""
+echo Setting permissions on exacutables....
+for file in $bins; do
+    chmod 0755 $file 
+done
+
+chmod 4755 catmail
+
+fix_serverd_perms
+
+
+
+
+######################################################################
+#
+# Do some general things to complete the upgrade
+#
+######################################################################
+if [ "$upgrade" = "yes" ]; then
+
+	#
+	# Don't rebuild the database if one already exists
+	#
+	if [ -f users.db ]; then
+		cat <<EOF
+
+It appears that you already have a valid user database, so I will not
+generate one now.  If you feel that this database may be invalid, you
+can recreate it at any time with the following command:
+
+	$LPDIR/revdb create
+
+EOF
+		echo "Press RETURN to continue."
+		read x
+	
+	#
+	# Generate a reverse database for sites that don't have one
+	#
+	else 
+		cat <<EOF
+
+I will now generate the reverse lookup database for your installation.
+Please note that for large sites this may take a while!
+EOF
+		echo "Press RETURN to continue."
+		read x
+
+		$LPDIR/revdb create
+    fi
+
+
+	#
+	# Print the message about the upgrade instructions in README.install
+	#
+
+#	cat <<EOF
+#
+#You should also check the README.install file for information on
+#additional steps you should take, depending on what version of
+#ListProc you are upgrading from.
+#EOF
+#
+#    echo "Press RETURN to continue."
+#    read x
+
+fi
+
+
+
+######################################################################
+#
+#  Print general message about new stuff....
+#
+######################################################################
+cat <<EOF
+
+By default, ListProc 8.2 writes log messages to a file called
+"listproc.log" in your installation directory.  The standard error
+output from any external calls is retained in the ".warning" file.  If
+you encounter any problems, please check these files for information.
+
+To start your ListProc server, simply do the following:
+
+    $LPDIR/start
+
+You should also make sure that the LPDIR environment variable is set
+to your current installation path.  For C-shell users (csh, tcsh,
+etc.) do this:
+ 
+    setenv LPDIR $LPDIR
+
+For bourne shell users (sh, bash, ksh, etc.), do this:
+
+    LPDIR=$LPDIR
+	export LPDIR
+
+EOF
+
+echo "Press RETURN to continue."
+read x
+
+
+
+
+######################################################################
+#
+# print a message for new users
+#
+######################################################################
+if [ "$upgrade" = "no" ]; then
+
+    cat <<EOF
+
+Please edit the configuration file to tailor ListProc's options to
+suit your site.  The configuration file is located at
+
+    $LPDIR/config
+
+
+Additionally make sure you add "listproc" alias to your local mail
+configuration, so ListProc will be able to receive commands.  If you
+are using sendmail, you should add the following to your aliases file
+(usually /etc/aliases or /etc/mail/aliases):
+
+listproc: "|$LPDIR/catmail -r -f"
+
+EOF
+
+    echo "Press RETURN to continue."
+    read x
+
+fi
+
+
+
+
+######################################################################
+#
+#  End message
+#
+######################################################################
+
+cat <<EOF
+
+The installation is complete!
+
+EOF
+

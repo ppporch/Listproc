@@ -1,0 +1,71 @@
+#! /bin/sh
+#                          @(#)subscribe	6.5 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.subscribe
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: subscribe <list> <your full name>
+Syntax: join <list> <your full name>
+Syntax: subscribe <list> for <email-address> <your full name>
+Syntax: join <list> for <email-address> <your full name>
+
+        The only way to subscribe to a list. Any extraneous characters in
+        your name are removed.
+
+        An initial password will be assigned by the system and will be included
+        in the reply message; you should reset this password to something
+        memorable to you via a 'set' request. This password will be used
+        to provide you with subscriber privileges when connecting to this
+        host for live request processing. For more information on this
+        issue a 'help live' request.
+
+        If the list allows commands to be executed for alternate address
+        then you may provide an alternate address you'd like to be subscribed
+        with using the FOR keyword followed by the alternate address and
+        name. ListProc will then send that address a cookie which you will
+        be required to email back. At that point you will be officially
+        subscribed to the list. Notice that a confirmation may be required
+        even if you do not subscribe another address (i.e. if you subscribe
+        the default way), if the list is set up to do that.
+
+        Here is an example; suppose you keep list mail in separate folders
+        of the form myemail+list@mycompany.com and the list requires
+        confirmation for subscriptions. You would then send the following
+        request to this server from your regular email account (e.g.
+        myemail@mycompany.com):
+
+            subscribe list-name FOR myemail+list-name@mycompany.com My Name
+
+        Once ListProc replies with confirmation cookie you should reply to
+        that message and you then be added to list-name as myemail+list-name
+        so that you will be receiving mail at that folder, and you will also
+        be able to post to that list from both addresses.
+
+        To find out if a list requires confirmations for subscriptions and
+        if it allows alternate addresses in this case send a REVIEW request.
+
+        Finally, some lists may not require you to provide a user name when
+        you subscribe; REVIEW will show you that as well.
+EOF

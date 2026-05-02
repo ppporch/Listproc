@@ -1,0 +1,62 @@
+#!/usr/local/bin/perl
+######################################################################
+#
+#  Create non-mime digest from existing MIME digests
+#
+######################################################################
+
+
+$lpdir = $ENV{LPDIR};
+die "LPDIR not set\n" if $lpdir eq "";
+
+
+
+#
+# open config file
+#
+$config = "$lpdir/config";
+die "Can't open $config\n" unless open CONFIG, "<$config";
+
+while(<CONFIG>)
+{
+    ($listname) = ( /^list\s+(\S+)\s*/i );
+    next if $listname eq "";
+
+    $listname = uc($listname);
+    $listdir = "$lpdir/lists/$listname";
+
+    #
+    # Copy the digest table of contents
+    #
+    system("cp $listdir/.digest.toc $listdir/.nomime.digest.toc");
+
+    #
+    # Create a non-mime digest body from the MIME digest body
+    #
+    if( open MIME, "<$listdir/.digest.msg" ) {
+	if( !open(NOMIME, ">$listdir/.nomime.digest.msg" )) {
+	    print "error creating non-mime digest body for list $listname\n";
+	    next;
+	}
+
+	while(<MIME>) {
+	    # Skip MIME header lines
+	    next if /^MIME-Version:\s/i;
+	    next if /^Content-Type:\s/i;
+
+	    # Change the seperator
+	    if( /^----__ListProc__NextPart/ ) {
+		print NOMIME "------------------------------\n";
+	    }
+	    else {
+		print NOMIME $_;
+	    }
+	}
+    }
+}
+
+
+
+
+
+

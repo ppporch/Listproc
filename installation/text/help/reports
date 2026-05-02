@@ -1,0 +1,39 @@
+#! /bin/sh
+#                          @(#)reports	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.reports
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: reports <list> <password>
+
+        All report files for the specified list will be sent. These
+        include the current and all previous ones since the list's
+        inception. Since these files continuously grow and tend to be large,
+        they are shrunk after processing this request. All in all, two mail
+        messages are sent.
+
+        This request is for list administration and is issued by the
+        list's owner. Contact the system's manager for more information.
+EOF

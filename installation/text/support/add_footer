@@ -1,0 +1,116 @@
+#!/usr/local/bin/perl
+######################################################################
+#
+#  add_footer
+#
+#  Simple perl example of using the ListProc 8.2 outbound message
+#  filter to add a standard footer to outgoing messages.  
+#
+#  Edit the variables below to tailor this for use in your own site.
+#  The example text below also mentions the location of the web
+#  interface.  You should modify or remove this to fit your site's
+#  installation.
+#
+######################################################################
+
+#
+# Read the inputs.  The format of the inputs from ListProc makes it
+# easy to read into a hash.
+#
+%arg = @ARGV;
+
+$list = $arg{'--list'};
+die "Empty list name" if($list =~ /^\s*$/);
+
+
+
+######################################################################
+#
+# Configurable variables
+#
+######################################################################
+
+#ListProc address
+$listproc = 'listproc@your.host';
+
+# Defines the seperators used for the footers on this list.  Anything
+# between these lines is discarded.  If a "begin" is found w/ no end
+# footer line, the remaining lines ARE added...
+#$footer_start = "------- $list footer start ----------------------";
+#$footer_end   = "------- $list footer end ------------------------";
+
+$base = "-" x (70 - length($list));
+$footer_start = $base .  lc($list) . "-+";
+$footer_end   = $base .  lc($list) . "--";
+
+
+
+# The actual footer message text
+$footer = qq{
+$footer_start
+For list utilities, archives, unsubscription, etc. please visit the
+ListProc web interface at 
+
+    http://www.cren.net/reguser/listutil/$list
+
+$footer_end
+};
+
+
+
+
+#
+# open files
+#
+
+open(INFILE,"<$arg{'--infile'}") ||
+  die "Can't open input file \"$arg{'--infile'}\"\n";
+
+open(OUTFILE,">$arg{'--outfile'}") ||
+  die "Can't write to output file \"$arg{'--infile'}\"\n";
+
+
+
+
+#
+# Scan through input file, & create output
+#
+$in_footer = 0;
+@saved_lines = ();
+while( <INFILE> ) {
+
+  $in_footer = 1 if /$footer_start/oi;
+
+  if( /$footer_end/oi ) {
+	$in_footer = 0;
+	@saved_lines = ();
+	next;
+  }
+
+  if($in_footer) {
+	push @saved_lines, $_;
+  }
+  else {
+	print OUTFILE $_;
+  }
+
+}
+
+close INFILE;
+
+#
+# Print out any leftover lines if no "end" line was found
+#
+if($in_footer && @saved_lines > 0) {
+  print OUTFILE @saved_lines;
+}
+
+
+
+#
+# Add the new footer
+#
+print 
+  OUTFILE 
+  $footer;
+

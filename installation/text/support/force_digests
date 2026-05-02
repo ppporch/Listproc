@@ -1,0 +1,55 @@
+#!/usr/local/bin/perl
+######################################################################
+#
+#  force_digests
+#
+#  Force ListProc to send all list digests immediately.  This should 
+#  be run before changing the digesting format.  In particular, since
+#  the digest format changed from ListProc 7.2 to ListProc 8.0, this 
+#  script should be run as part of the normal upgrade procedure.
+#
+#  This script works by calling the "list -1 -d" command for every list 
+#  in the server's config file.  To ensure that two "list" processes
+#  do not try to access a particular list at the same time, it is 
+#  imperitive that the server be shut down before proceding.
+#
+######################################################################
+
+
+
+############################################################
+# Setup variables
+############################################################
+
+$LPDIR = $ENV{'LPDIR'};
+substr($LPDIR,0,1) eq '/' || 
+    die "LPDIR is not set correctly.  Please set LPDIR to point to your\n",
+    "ListProc directory and run this script again.\n";
+
+
+
+############################################################
+# Make sure the server is not running
+############################################################
+print "This script should only be run with ListProc shut down.\n\n";
+system("$LPDIR/start -k");
+
+
+############################################################
+# Find the list of active lists, from the config file
+############################################################
+$listlines = `awk '/^[lL][iI][sS][tT][ \t]+/ {print \$2}' $LPDIR/config`;
+$listlines =~ tr/a-z/A-Z/;
+@lists = split(/\n/, $listlines);
+
+
+
+############################################################
+# Run "list -1 -d" for each one.
+############################################################
+foreach $list (@lists)
+{
+    system("$LPDIR/list -1 -d -L $list");
+}
+
+

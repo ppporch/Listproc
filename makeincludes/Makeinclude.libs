@@ -1,0 +1,38 @@
+#-*-mode: makefile-*-
+
+
+###include $(SRCDIR)/makeincludes/Makeinclude.global
+
+
+
+#######################################################################
+#
+# rules to make the standard development library
+#
+#######################################################################
+
+# Define object files
+OBJS		= $(CFILES:.c=.o)
+
+# include dependancies
+DEPS		= $(CFILES:.c=.d)
+include $(DEPS)
+
+
+all: $(LIB)
+
+$(LIB): $(OBJS)
+	rm -f $@
+	ar cr $@ $(OBJS)
+	$(RANLIB) $@
+
+lib: $(LIB)
+
+clean:
+	rm -f $(LIB) *.o *.d 
+
+
+
+
+
+

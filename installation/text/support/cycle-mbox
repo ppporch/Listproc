@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Shell script which cycles your $LPDIR/lists/LIST-ALIAS/mbox files
+# It retains a five unit (a unit can be a day, week, month ...
+# It should be run out of the listprocessor's account (server) cron entry.
+# I recommend once per week...
+#
+#  Marco Hernandez
+#
+#         <marco@cren.net>
+#       (some time in 1994)
+#
+
+# Modified to use the LPDIR environment variable, rather than "HOME"
+#   Rob von Behren <jrvb@cren.net>
+#   July, 1996
+
+
+#
+# rotate /path/file 9 8 7 6 5 4 3 2 1 0
+#
+rotate() {
+	file="$1"; shift
+	rm -f "$file.$1"
+	for i in "$@"; do
+		[ "$i" = "0" ] && j="" || j=".`expr $i - 1`"
+		[ -f "$file$j" ] && mv -f "$file$j" "$file.$i"
+	done
+	cp /dev/null "$file"; chmod 600 "$file"
+}
+#
+# Find and cycle the mboxes ...
+#
+for INFILE in `find $LPDIR/lists -name mbox -print`
+   do
+	rotate $INFILE 5 4 3 2 1 0
+   done
+#
+# Now do the warning file 
+#
+rotate $LPDIR/.warning 5 4 3 2 1 0 

@@ -1,0 +1,50 @@
+#! /bin/sh
+#                          @(#)unsubscribe	6.5 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.unsubscribe
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: unsubscribe <list>
+Syntax: signoff <list>
+Syntax: unsubscribe <list> FOR <user-address>
+Syntax: signoff <list> FOR <user-address>
+
+        Remove yourself from a list. If your email address has changed, you
+        will not be able to do this easily; use one of the ilp clients to
+        connect to the server, then provide the old address and the password
+        assigned to that list to get subscriber privileges; then issue the
+        unsubscribe request manually.
+
+        If the list allows alternate addresses to be removed you may provide
+        an alternate address to be removed using the FOR keyword followed
+        by the alternate address. ListProc will then send that address a
+        cookie which you will be required to email back. At that point you
+        will be officially removed from the list. Notice that a confirmation
+        may be required even if you do not unsubscribe another address (i.e.
+        if you unsubscribe the default way), if the list is set up to do that.
+
+        To find out if a list requires confirmations for unsubscriptions or
+        if it allows alternate addresses to be removed send a REVIEW request.
+EOF

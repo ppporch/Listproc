@@ -1,0 +1,61 @@
+#-*-makefile-*-
+#
+# Generic Makeinclude.local, for gcc 2.9.5
+#
+# make sure not to put any whitespace before or after the value below
+
+LP_PORTNAME=aix-4-2
+
+# Sleepycat Definitions
+
+# see dbm/build_unix.html and dbm/Makefile for details as to how to
+# set this if you need to force database compilation to be different
+# than the default that configure decides upon
+
+# use env to set one or more environment variables
+
+DB_ENV = env CC=xlc CFLAGS="-D_ALL_SOURCE -qnoro"
+
+# set additional configuration options
+
+# Note that the --enable-diagnostic "flag should NOT be defined when
+# configuring to build production binaries, as you will lose a significant
+# amount of performance" according to the Sleepcat documentation.
+
+#DB_CONF = --enable-diagnostic
+
+# ListProc Definitions
+
+# define your compiler (some source files may need different compiler):
+LP_CC = xlc -D_ALL_SOURCE -qnoro
+
+# define special symbols (system, preprocessor options, etc):
+LP_DEFINES	= -DLP_PORTNAME=\"$(LP_PORTNAME)\" \
+		  -DHAVE_SELECT_H -DHAVE_SETJMP_H \
+		  -DBUFFSIZ=10240 -DNO_MTA_REST -DMMAP \
+		  -DUSE_CARRIAGE_RETURN_LINEFEED \
+		  -DSPEED_UP_SUBSCRIBER_LOOKUPS
+
+# define the optimization level
+LP_OPTIMIZATION	= -gg
+
+# define where the preprocessor is:
+CPP		= /lib/cpp
+
+# define linking options and libraries
+LP_LDFLAGS		= $(OPTIMIZATION)
+LP_LIBS		= -lbsd
+LP_MATH_LIB	= -lm
+
+
+# Define the library creation command
+RANLIB		= ranlib
+#RANLIB		= ar ts
+
+SHELL		= /bin/sh
+#SHELL		= /usr/local/bin/bash
+
+ECHO_C 		= \c
+#ECHO_N		= -n #Note the space after the -n.  This is important!!
+
+

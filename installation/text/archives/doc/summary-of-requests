@@ -1,0 +1,180 @@
+
+		     ListProcessor(tm) version 8.1
+
+			Copyright (c) 1993-97 by
+	the Corporation for Research and Educational Networking (CREN)
+
+
+			      April 1997
+
+
+Recognized requests are:
+
+				GENERAL
+
+help [topic]
+lists [local|global [keywords]]
+release
+version
+
+				FOR LISTS
+
+information [list]
+recipients <list>
+review <list> [short|description|subscribers]
+purge <password>
+run <list> [<password> <cmd [args]>]
+set <list> [<option> [arg[s]]]
+     mail [ACK|NOACK|POSTPONE|DIGEST]
+     password <current-password> [new-password]
+     address <current-password> <new-address>
+     conceal [YES|NO]
+     preference [preferences]
+query <list>
+statistics <list> {[subscriber email address(es)] | [-all]}
+subscribe <list> <your name>
+join <list> <your name>
+unsubscribe <list>
+signoff <list>
+which
+which-owned
+
+				FOR ARCHIVES
+
+afd <action> {<archive> [/password] [files]} [{<archive> [/password] [files]}]
+fui <action> {<archive> [/password] [files]} [{<archive> [/password] [files]}]
+archive <archive name> <password> <action> [args]
+fax <fax-number> <archive | path-to-archive> <file> [/password] [parts]
+get <archive | path-to-archive> <file> [/password] [parts]
+index [archive | path-to-archive] [/password] [-all]
+search <archive | path-to-archive>] [/password] [-all] <pattern>
+view <archive | path-to-archive>] [/password] [parts]
+
+				FOR LIST MANAGEMENT
+
+[quiet] add <list> <password> <address> <name>
+[quiet] add <list> <password> {<address> <name>} {<address> <name>} ...
+approve <list> <password> <tag> [tag] ...
+configuration <list> <password> [<option> [args] [, <option> [args] ...]]
+global configuration <password> [<option> [args] [, <option> [args] ...]]
+*       ARCHIVE [dir] [filespec] [arch-name] [password] [messages|digests]
+        ARCHIVE [password] [messages|digests]
+        NO-ARCHIVE
+*       COMPRESSED-ARCHIVES
+*       UNCOMPRESSED-ARCHIVES
+        ARCHIVES-TO-ALL
+        ARCHIVES-TO-OWNERS
+        ARCHIVES-TO-SUBSCRIBERS
+        AUTO-DELETE-SUBSCRIBERS
+        NO-AUTO-DELETE-SUBSCRIBERS
+        CLOSED-SUBSCRIPTIONS
+        OPEN-SUBSCRIPTIONS
+        OWNER-SUBSCRIPTIONS
+        WIDE-OPEN-LIST
+        COMMENT <string>
+        NO-COMMENT
+        DEFAULT <mailmode> <value> [<mailmode> <value>] ...
+                address variable|fixed
+                mail ack|noack|postpone|digest
+                password <string>
+                conceal yes|no
++               preference CCoption
++       DELIVERY-ERRORS-TO <address> [address] ...
++       REMOVE-ERRORS-TO <address> [address] ...
+        DIGEST <frequency> [when] [lines bytes]
+               daily hh:mm
+               weekly Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday
+               monthly
+        NO-DIGESTS
++       DISABLE <request> [request] ...
++       ENABLE <request> [request] ...
++       SET-DISABLE <mode> [value] [<mode> [value]] ...
+                    mail ack|noack|postpone|digest
+                    conceal yes|no
+                    password
++       SET-ENABLE <mode> [value] [<mode> [value]] ...
+                    mail ack|noack|postpone|digest
+                    conceal yes|no
+                    password
+        FORWARD-REJECTS
+        DONT-FORWARD-REJECTS
+        KEEP-RESENT-LINES
+        DONT-KEEP-RESENT-LINES
+	REFLECTOR
+	NO-REFLECTOR
+        HIDDEN-LIST
+        VISIBLE-LIST
+        PUBLISHED-LIST
+        UNPUBLISHED-LIST
+*       MANAGER-CONTROLLED
+*       OWNER-CONTROLLED
+        MAX-MESSAGES-PER-DAY <number>
+        MESSAGE-LIMIT <number>
+        NO-MESSAGE-LIMIT
++       MODERATED-EDIT [address] ...
++       MODERATED-NO-EDIT [address] ...
+        UNMODERATED
++       REMOVE-MODERATORS <address> [address]
++       OWNERS <address> [address] ...
++       REMOVE-OWNERS <address> [address] ...
+        PASSWORD <string>
+*       THREADS <number>
+*       MTA-HOST <host> [port]
++       SUBSCRIPTION-MANAGERS <address> [address] ...
++       REMOVE-SUBSCRIPTION-MANAGERS <address> [address] ...
+        REMOVE-ALL-SUBSCRIPTION-MANAGERS
+        REPLY-TO-LIST
+        REPLY-TO-LIST-ALWAYS
+        REPLY-TO-SENDER
+        REPLY-TO-SENDER-ALWAYS
+        REPLY-TO-OMITTED
+        REVIEW-TO-ALL
+        REVIEW-BY-ALL
+        REVIEW-TO-OWNERS
+        REVIEW-BY-OWNERS
+        REVIEW-TO-SUBSCRIBERS
+        REVIEW-BY-SUBSCRIBERS
+        REVIEW-TO-SUBSCRIBERS-SHORT
+        REVIEW-BY-SUBSCRIBERS-SHORT
+        STATISTICS-TO-ALL
+        STATISTICS-BY-ALL
+        STATS-TO-ALL
+        STATS-BY-ALL
+        STATISTICS-TO-OWNERS
+        STATISTICS-BY-OWNERS
+        STATS-TO-OWNERS
+        STATS-BY-OWNERS
+        STATISTICS-TO-SUBSCRIBERS
+        STATISTICS-BY-SUBSCRIBERS
+        STATS-TO-SUBSCRIBERS
+        STATS-BY-SUBSCRIBERS
+        SEND-BY-ALL
+        SEND-BY-OWNERS
+        SEND-BY-OWNERS-CONFIRM
+        SEND-BY-SUBSCRIBERS
+        SEND-BY-SUBSCRIBERS-CONFIRM
+        CONFIRM-ALL-SUBSCRIPTIONS
+        DONT-CONFIRM-ALL-SUBSCRIPTIONS
+        CONFIRM-ALL-UNSUBSCRIPTIONS
+        DONT-CONFIRM-ALL-UNSUBSCRIPTIONS
+        ALLOW-EMPTY-SUBSCRIBER-NAMES
+        DONT-ALLOW-EMPTY-SUBSCRIBER-NAMES
+        ALLOW-ALTERNATE-ADDRESS-COMMANDS
+        DONT-ALLOW-ALTERNATE-ADDRESS-COMMANDS
+[quiet] delete <list> <password> <address> [address] ...
+discard <list> <password> <tag> [tag] ...
+edit <list> <password> <file> [-nolock]
+	file: subscribers|aliases|news|peers|ignored|info|welcome
+free <list> <password>
+hold <list> <password>
+initialize <manager password> [<list alias> <list address> <configuration options>]
+new-list <manager password> <list alias> <list address> <configuration options>
+lock <list> <password>
+purge <password> <address> [address] ...
+put <list> <password> <keyword> [args]
+  keyword: alias|ignore|subscribers|aliases|news|peers|ignored|info|welcome
+  args: email address for alias|ignore
+reports <list> <password>
+[quiet] set <list> [<option> <arg[s]>] for <address> [address] ...
+system <list> <password> <user-address> #user-request
+unlock <list> <password>

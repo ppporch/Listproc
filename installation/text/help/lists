@@ -1,0 +1,68 @@
+#! /bin/sh
+#                          @(#)lists	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.lists
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: lists [local|global [keywords]]
+
+        Get a list of all mailing lists served by this server, or of all local
+        and remote lists known to this server; the listing consists of email
+        addresses and a brief comment for each one.
+
+        Requests for remote lists may be sent to this ListProcessor and they
+        will be forwarded for you to the proper server.
+
+        If keywords are specified, they are treated as a logically ANDed list
+        of strings/regular expressions; keywords can be quoted. When keywords
+        are specified, only those lists' descriptions that match the keywords
+        are listed.
+
+        Here is an example that uses regular expressions:
+
+                lists global 'graphics|<visualization&~2D>' 3D
+
+        This will compile a list of lists that deal with 
+        (graphics OR (visualization AND NOT 2D)) AND 3D
+
+        & is the logical AND operator
+        | is the logical OR operator
+        ~ is the logical NOT operator
+        < and > group expressions
+        ^ matches the beginning of the string
+        $ matches the end of the string
+        . matches any character
+        * matches the preceding expression zero or more times
+        + matches the preceding expression one or more time
+        [ and ] specify groups of characters
+        \ is used to escape any of the above characters to force it to be 
+          interpreted literally
+
+        Examples:
+        '^3D$' matches the string '3D' but not the string '3D objects'.
+        '^3D.+objects$' matches '3D and 2D objects'.
+
+        For more information, please consult a book on UNIX regular expressions.
+EOF

@@ -1,0 +1,20 @@
+#!/bin/sh
+#  			@(#)ulock	6.2 CREN 97/01/14
+# 
+# 			Copyright (c) 1993-97 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/distrib/s.ulock
+#
+
+
+#!/bin/sh
+# ulock - remove all locked files.
+
+test ${LPDIR:?'not set; exiting'}
+rm -rf $LPDIR/.lock.* $LPDIR/locks
+exit 0

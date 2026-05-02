@@ -1,0 +1,120 @@
+#!/bin/sh
+#  			@(#)queued	6.5 CREN 98/03/18
+# 
+# 			Copyright (c) 1993-98 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/jrvb/dev/lp82/s.queued
+#
+
+# Usage: queued <frequency>
+#
+# Daemon to process the mail queue periodically. The frequency is given
+# in seconds.
+#
+# The semaphore parameters of previous versions are no longer needed.
+# For compatibility with older installations, the second and third
+# arguments are silently ignored.  
+#
+
+
+######################################################################
+#
+#  Configurable parameters
+#
+######################################################################
+
+#Define the standard BSD "mail" program.  
+#mail="/bin/rmail"
+#mail="/bin/mail"
+mail="mail"
+
+
+
+
+######################################################################
+#
+#  Nothing below should need to be changed
+#
+######################################################################
+
+PROG=`basename $0`
+
+#
+# Make sure LPDIR is set
+#
+if [ "$LPDIR" = "" ]; then
+  echo ""
+  echo Error: $PROG requires that the LPDIR environment variable be 
+  echo set to the full path of your ListProc installation.
+  echo ""
+  exit 1
+fi
+
+
+#
+# Check command line
+#
+if [ $# -gt 3 -o $# -eq 0 ]; then
+  echo Usage: $PROG \<frequency\>
+  exit 3
+fi
+
+
+
+PID_QUEUED=${LPDIR}/.pid.queued
+if [ -f $PID_QUEUED ]; then	# kill previous queued
+  cat $PID_QUEUED | (read PID; kill -HUP $PID > /dev/null 2>&1)
+  rm -rf $PID_QUEUED
+fi
+echo $$ > $PID_QUEUED
+
+DIR=${LPDIR}/mqueue
+FREQ=$1
+shift
+
+#
+# Find the manager's email address
+#
+MANAGER=`grep "^manager " ${LPDIR}/config | awk '{ print $2 }'`
+if [ "$MANAGER" = "" ]; then
+	MANAGER="root postmaster"
+fi
+
+
+#
+# Move into the mqueue directory
+#
+if [ ! -d $DIR ]; then
+  echo $DIR directory missing
+  exit 3
+fi
+cd $DIR
+PWD=`pwd`
+
+
+
+#
+# Main Loop... 
+#
+while [ 007 ]; do
+  for i in `\ls`
+  do
+    if [ ! -f ${LPDIR}/pqueue ]; then
+      echo $0 aborts: pqueue not found | $mail $MANAGER
+      exit 1
+    fi
+    ${LPDIR}/pqueue $PWD/$i
+    exit_status=$?
+    if [ $exit_status -gt 0 ]; then
+      echo $0 aborts: pqueue exit status $exit_status | $mail $MANAGER
+      exit $exit_status
+    fi
+  done
+  sleep $FREQ
+done
+exit 0

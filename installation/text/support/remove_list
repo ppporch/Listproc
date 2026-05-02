@@ -1,0 +1,349 @@
+#!/usr/local/bin/perl
+######################################################################
+#
+#  remove_list <listname> [-c] [-d] [-a] 
+#
+#  Removes a ListProc list.  This includes commenting the list
+#  definition out of the config file, commenting list owners from the
+#  owners file, removing the list directory and removing the list's
+#  archives.
+#
+#  If no flags are given, remove_list prompts the user to see if the
+#  list and archive directories should be removed.
+#
+#  Flags:   -c        Don't prompt for confirmation
+#           -d        remove the list directory
+#           -a        remove the list archive
+#           
+#
+#  Revision Information:
+#
+#           Created by Rob von Behren (jrvb@cren.net) for CREN, July 1996
+#           Revised to deal /w multi-line commands 9/6/96 - Rob von Behren
+#  
+#
+#
+
+
+
+
+
+
+#
+# Definitions and defaults
+#
+$remove_listdir = 0;
+$remove_archive = 0;
+$confirm = 1;
+$savelines = 1;
+$savebackup = 1;
+
+#list of key words that use a list name...
+@list_lines = ('\#\s+List',
+	       'list',
+	       'threads',
+	       'keywords',
+	       'passwd',
+	       'ceiling',
+	       'restrict',
+	       'disable',
+	       'comment',
+	       'digest',
+	       'moderator',
+	       'subscription_manager',
+	       'errors-to',
+	       'creation_date',
+	       'default',
+	       'mask',
+	       'set-disable',
+	       'unix_cmd',
+	       );		
+	       
+$list_lines = '^((' . 
+    join( ')|(', @list_lines ) . 
+    '))\s+';
+	       
+
+
+#
+# Process command line options
+#
+die &Format unless @ARGV >= 1;
+
+
+while(substr($ARGV[0],0,1) eq "-")
+{
+    $arg = shift;
+    @opts = split '', $arg;
+    shift @opts;
+    
+    foreach $o (@opts)
+    {
+	if($o eq "a") {$remove_archive=1; next;}
+	if($o eq "d") {$remove_listdir=1; next;}
+	if($o eq "c") {$confirm=0; next;}
+	if($o eq "r") {$savelines=0; next;}
+	if($o eq "k") {$savebackup=0; next;}
+	{ #default case
+	    print "\nUnknown option $o\n\n";
+	    die &Format; }
+    }
+}
+
+
+#
+# Make sure we are not running as root
+#
+chomp($uid = `whoami`);
+die "You are currently running as root.\n\n" .
+    "To ensure that the permissions and ownership of the config & owners\n" .
+    "files are set correctly, you should run this command as the ListProc\n" .
+    "user id.  (This is usually user 'server')\n\n"
+    if($uid eq "root");
+
+
+#
+# Make sure LPDIR is set correctly
+#
+$LPDIR = $ENV{'LPDIR'};
+die "The LPDIR environement variable is not set\n" 
+    if( $LPDIR eq "");
+die "The LPDIR environement variable is not set properly:\n" .
+    "$LPDIR/serverd not found\n"
+    if( ! -f "$LPDIR/serverd" );
+
+
+
+#
+# Check to see what style of ps we are using
+#
+$bsd_ps_command = "ps -gx";
+$sysV_ps_command = "ps -ef";
+system("ps -gx >/dev/null 2>/dev/null");
+if( $? == 0 ) { 
+    $ps_command = $bsd_ps_command; }
+else {
+    $ps_command = $sysV_ps_command; }
+
+
+#
+# Make sure ListProc is not running
+#
+$i=0;
+while( $i<4  &&  grep(/serverd/,split(/\n/,`$ps_command`)) )
+{
+    print "Serverd still running.  Will try to kill it.\n";
+    
+    if($confirm) {
+	system("$LPDIR/stop"); }
+    else {
+	system("$LPDIR/stop -c"); }
+}
+
+
+#
+# Find out whether we should comment out lines, or remove them
+#
+if($confirm && UserChoice("Comment out lines, or Remove them?", 'C', 'R') eq 'R')
+{
+    $savelines = 0;
+}
+
+
+#
+# Find out whether or not to keep backups
+#
+if($confirm && UserChoice("Save old config & owners files as filename.bak?", 'Y', 'N') eq 'N')
+{
+    $savebackup = 0;
+}
+if($savebackup)
+{
+    $bak = "$LPDIR/config.bak";
+    if(!$confirm || !-f $bak || UserChoice("$bak exists.  Overwrite?", 'Y', 'N') eq 'Y') {
+	system("cp $LPDIR/config $bak"); }
+    else {print "$LPDIR/config not backed up\n";}
+
+    $bak = "$LPDIR/owners.bak";
+    if(!$confirm || !-f $bak || UserChoice("$bak exists.  Overwrite?", 'Y', 'N') eq 'Y') {
+	system("cp $LPDIR/owners $bak"); }
+    else {print "$LPDIR/owners not backed up\n";}
+}
+
+
+
+
+#
+# Main loop for removal of each list on the command line
+#
+while($listname = shift)
+{
+    $listname = uc($listname);
+
+    #
+    # Print encouraging message
+    #
+    print "Starting removal of list $listname\n";
+
+
+
+
+    #
+    # Clean out the config file 
+    #
+    print "    cleaning the config file\n";
+    $tempfile = "config.$$";
+    die "can't open $LPDIR/config\n" unless open(CONFIG,"$LPDIR/config");
+    die "can't open temp file\n" unless open(NEWCONFIG, ">$LPDIR/$tempfile");
+    while(<CONFIG>)
+    {
+	# skip the list command lines
+	if( m/$list_lines$listname\s/i )
+	{
+	    #deal w/ continued lines
+	    while( m/\&\s*$/ ) {
+		print NEWCONFIG "#", $_  if $savelines;
+		$_ = <CONFIG>; 
+	    }
+	    print NEWCONFIG "#", $_ if $savelines;
+	    next;
+	}
+
+	# special handling for "header" directive
+	if( m/^header\s+$listname\s/i ) {
+	    # Delete lines until closing brace
+	    while( ! m/\}\s*$/ ) {
+		print NEWCONFIG "#", $_ if $savelines;
+		$_ = <CONFIG>;
+	    }
+	    print NEWCONFIG "#", $_ if $savelines;
+	    next;
+	}
+	
+	# otherwise, just pass the line through
+	print NEWCONFIG $_;
+
+    }
+    unlink("$LPDIR/config");
+    rename("$LPDIR/$tempfile","$LPDIR/config");
+
+
+    #
+    # Clean out the owners file
+    #
+    print "    cleaning the owners file\n";
+    $tempfile = "owners.$$";
+    die "can't open $LPDIR/owners\n" unless open(OWNERS,"$LPDIR/owners");
+    die "can't open temp file\n" unless open(NEWOWNERS, ">$LPDIR/$tempfile");
+    while(<OWNERS>)
+    {  
+	# immediately skip comments
+	if( m/^\#/ ) {
+	    print NEWOWNERS $_;
+	    next;
+	}
+
+	# All lines that contain "listname" should be dealt with
+	if( /^[^\#]*$listname\s/i ) {  
+	    print NEWOWNERS "#", $_ if $savelines;
+	    next;
+	}
+	
+	#pass other lines through
+	print NEWOWNERS;
+    }    
+    unlink("$LPDIR/owners");
+    rename("$LPDIR/$tempfile","$LPDIR/owners");
+
+
+
+
+    #
+    # Clean out the list directory
+    #
+    if($confirm && UserChoice("    Remove the list directory?", "Y", "N") eq "Y") {
+	$remove_listdir = 1; }
+    if($remove_listdir)
+    {
+	print "    Removing list directory\n";
+	if (-d "$LPDIR/lists/$listname") {
+	    system("rm -rf $LPDIR/lists/$listname >/dev/null 2>/dev/null"); }
+	else {
+	    print "    No such directory $LPDIR/lists/$listname\n"; }
+    }
+
+
+
+
+    #
+    # Clean out the archive directory
+    #
+    if($confirm && UserChoice("    Remove list archive and sub archives?", "Y", "N") eq "Y") {
+	$remove_archive=1; }
+    if($remove_archive)
+    {
+	print "    Calling farch to remove archive.\n";
+	print "      (farch will complain if the archive doesn't exist.)\n";
+	system("$LPDIR/farch -R $listname");
+    }
+
+
+
+}
+
+
+
+######################################################################
+#
+#
+#  Utility Subroutines
+#
+#
+######################################################################
+sub UserChoice
+{
+    my($message,$op1,$op2) = @_;
+    uc($op1);
+    uc($op2);
+
+    do {
+	print "$message ($op1/$op2)  ";
+	chop($input = <STDIN>);
+	$input = uc($input);
+    } while($input ne $op1  &&  $input ne $op2);
+
+    return $input;
+}
+
+
+sub Format 
+{
+    my @carray = split('/',$0);
+    my $cname = pop @carray;
+    print qq{
+Format: $cname [-options] <listname> [listname] ... 
+
+Options are any of the following:
+    c  Don't prompt for confirmation
+    d  remove list directory (default is to keep the directory)
+    a  remove list archive (default is to keep the archive)
+    r  remove lines from config & owners files (default is to comment out)
+    k  kill the old config & owners files (default creates filename.bak)      
+
+The -d and -a flags are ignored unless -c is specified.  If -c is used,
+the archive & the list directory are left alone by default.  Use -d and/or
+-a to override this behavior.
+
+EXAMPLE
+To remove all traces of the lists "FOO" and "BAR", use the following command:
+
+    $cname -cda FOO BAR
+
+};
+
+}
+
+
+
+
+

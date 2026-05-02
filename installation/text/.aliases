@@ -1,0 +1,19 @@
+# 
+# 			Copyright (c) 1993-98 by
+# 	the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises unpublished confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+
+# Example aliases file
+
+# The following removes source routing:
+^\<*@.*:(.+)@(.+\.[^\>]+)\>* \1@\2
+
+# BITNET specific:
+^(.+)%(.+)\.[Bb][Ii][Tt][Nn][Ee][Tt]@.+ \1%\2.bitnet@interbit.cren.net
+
+# Another typical alias to translate uucp addresses like domain!host!user:
+(.+)!(.+)!(.+) \3@\2.\1

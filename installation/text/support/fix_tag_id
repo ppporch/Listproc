@@ -1,0 +1,117 @@
+#!/usr/local/bin/perl
+######################################################################
+#
+#  fix_tag_id  [--all | listname]
+#
+#  Scan ListProc list directories for moderated files, and create 
+#  a safe tag id based on the messages they contain.
+#
+######################################################################
+
+
+
+#
+# Determine the ListProc directory
+# 
+$lpdir = $ENV{'LPDIR'};
+if($lpdir eq "") {
+    die "Please set the LPDIR environment variable to the location of your\n" .
+	"ListProc installation";
+}
+
+
+
+#
+# Deal w/ command line parameters
+#
+$format = "$0: [--all | listname]\n";
+die $format if($ARGV[0] eq "");
+$arg = shift;
+$arg = uc($arg);
+
+
+
+#
+# Accumulate the list of lists to update
+#
+if($arg eq "--ALL") {
+
+    $file = "$lpdir/config";
+    print "reading lists from $file\n";
+    -f $file || die "$file doesn't exist\n";
+    open CONFIG, "<$file" || die "Can't read $file\n";
+    my $list;
+    while(<CONFIG>) {
+	next unless /^list\s+/i;
+	($list) = (/^list\s+(\S+)/i);
+	$list=uc($list);
+	push @lists, $list;
+    }
+}
+else {
+    @lists = ("$arg");
+}
+
+
+
+
+#
+# Fix the lists
+#
+foreach $list (@lists)
+{
+    fix_list($list);
+}
+
+
+
+
+
+######################################################################
+#
+#  Fix list 
+#
+######################################################################
+sub fix_list
+{
+    my $listname = shift;
+    my $dir = "$lpdir/lists/$listname";
+
+    
+    print "\nFixing list \"$listname\"\n";
+    
+
+    #
+    #  Find the current maximum
+    #
+    my $file = "$dir/moderated";
+    print "    Scanning $file for message tags\n";
+    if ( ! -f $file ) { 
+	print "    $file doesn't exist\n"; return;}
+    if ( ! open MODERATED, "<$file") { 
+	print "    Can't read from $file\n"; return;}
+    my $id, $max=0;
+    while( <MODERATED> ) {
+	next unless /^Message-Tag:/oi;
+
+	($id) = (/^Message-Tag:\s+(\d+)\s*$/);
+	$id = 0 + $id;
+	
+	$max=$id  if $id>$max;
+    }
+    close MODERATED;
+
+
+    #
+    #  Create the new .tag.id file
+    #
+    print "    Writing new $dir/.tag.id file\n";
+    open TAG, ">$dir/.tag.id" ||
+	print "   Can't write to $dir/.tag.id\n";
+    $max++;
+    print TAG "$max\n";
+    close TAG
+}
+
+
+

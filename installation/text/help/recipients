@@ -1,0 +1,43 @@
+#! /bin/sh
+#                          @(#)recipients	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.recipients
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: recipients <list>
+Syntax: review <list> [short|description|subscribers]
+
+        Review the list's settings, get the list's general information file and
+        get a listing of the current subscribers for the specified list;
+        each person's email address is followed by his/her name. If the list
+        is linked with any peer lists, your request will be forwarded to
+        the appropriate server(s) also, except when the request is live.
+
+        "short" or "description" return everything except the list of 
+        subscribers. "subscribers" will return a list of the current
+        subscribers only.
+
+        If a list is private, members only may issue this request.
+EOF

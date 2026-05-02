@@ -1,0 +1,51 @@
+#! /bin/sh
+#                          @(#)put	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.put
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: put <list> <password> <keyword> [args]
+
+        Manipulate user addresses (aliases, etc.) and change the
+        list's system files. When changing system files (such as the
+        aliases, ignored, subscribers, etc.), the text for these files
+        begins immediately after this request (therefore subsequent requests
+        are not processed, they are taken to be part of this file) and
+        spans through the end of your message -- physical end of message,
+        or the beginning of the signature line starting with "--" in a
+        single line (beware of a .signature file that does start with "--").
+
+        Take extra precaution when creating new system files; use the
+        correct syntax and keep in mind that the copy you send will
+        overwrite the current file. For the syntax of each file see the help
+        page on EDIT.
+
+        Refer to the documentation for possible keywords and their
+        arguments.
+
+        This request is for list administration and is issued by the
+        list's owners. Contact the system's manager for more information
+        about the keywords and their possible arguments.
+EOF

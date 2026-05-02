@@ -1,0 +1,21 @@
+#! /bin/sh
+#                          @(#)which	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.which
+#
+
+
+#! /bin/sh
+cat <<EOF
+Syntax: which
+
+        Get a list of all mailing lists (served by this server) to
+        which you have subscribed.
+EOF

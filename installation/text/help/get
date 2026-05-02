@@ -1,0 +1,61 @@
+#! /bin/sh
+#                          @(#)get	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.get
+#
+
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: get <archive | path-to-archive> <file> [/password] [parts]
+Syntax: view <archive | path-to-archive> <file> [/password] [parts]
+Syntax: sendme <archive | path-to-archive> <file> [/password] [parts]
+
+        Get the specified file from the specified archive. The file may
+        have been split into parts because some mailers cannot send large
+        files, and in this case you will receive as many messages as the
+        number of parts the file has been split into. Binary files are
+        uuencoded, so you will need to combine all the parts sent and
+        uudecode. The requested file may be a tar file (containing other
+        files and perhaps directories) in which case when you uudecode,
+        a tar file will be created and you will need to run the UNIX
+        utility 'tar' on it to extract the files and directories.
+
+        If certain parts are specified, then only these parts (if they exist)
+        will be sent. The parts are specified as numbers separated by spaces.
+        You may not specify ranges of parts (e.g. 1-3).
+
+        Certain archives may be private, in which case you have to specify
+        a password (the slash is required) in order to obtain files from
+        them. Different archives may have different passwords, but all files
+        from the same archive may be obtained with the same password.
+
+        Archives may have the same names; they can be distinguished by the
+        path (the branch in the hierarchy) to them. For example, the archives
+        unix and pub/unix are distinct. 'path-to-archive' is a UNIX style
+        path (such as pub/unix) -- i.e. a '/' is used to move through the
+        branches of the hierarchy. An 'index' request always reports paths
+        to archives for your convenience.
+
+        "view" only makes a difference in interactive mode when a user wishes
+        to simply look at the file and not save it to disk.
+EOF

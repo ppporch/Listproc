@@ -1,0 +1,28 @@
+.DS_Store
+._*
+
+# C build artifacts
+*.o
+*.a
+*.d
+core
+core.*
+
+# Historical init-script samples are source files, not dependency output.
+!installation/sample_init.d
+!scripts/sample_init.d
+
+# Editor/backup files
+*~
+*.swp
+*.swo
+
+# Generated distribution outputs
+/dist/
+/bins.tar
+/bins.tar.Z
+/src.tar
+/src.tar.Z
+/DUMMY
+/bins/DUMMY
+/FORCELIBS

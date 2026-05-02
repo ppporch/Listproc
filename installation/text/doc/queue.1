@@ -1,0 +1,76 @@
+.\" 
+.\"  			@(#)queue.1	6.2 CREN 97/01/14
+.\" 
+.\" 			Copyright (c) 1993-97 by
+.\" 	the Corporation for Research and Educational Networking (CREN)
+.\" 
+.\" All rights reserved. This software comprises confidential
+.\" information of CREN and may not be used, copied or made available to anyone,
+.\" except in accordance with the license under which it is furnished.
+.\" 
+.\" SCCS file: /usr/SCCS/home/server/listproc/distrib/doc/s.queue.1
+.\" 
+.\" 
+.\" ListProcessor(tm) System
+.\" Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)
+.\"
+.TH queue 1 "ListProcessor(tm)"
+.SH NAME
+\fBqueued\fP \- ListProcessor(tm) mail queue daemon
+.SH SYNOPSIS
+\fBqueued\fP <\fBfrequency\fP> [\fBsemaphore id\fP]
+.SH NAME
+\fBpqueue\fP \- process the specified mail queue files
+.SH SYNOPSIS
+\fBpqueue\fP [\fB-e\fP] [\fB-D\fP] <\fBfiles\fP>
+.SH OVERVIEW
+This part of the ListProcessor(tm) system can be employed only when using the
+\fIsystem\fP mailmethod (see \fIserver\fP(1)).
+Mail messages rejected by the local MTA are queued by the system in the
+directory LPDIR/mqueue. This part of the system attempts periodic
+redelivery of these files. If problems still persist, files (messages)
+that cannot be delivered are requeued.
+.PP
+Whenever a message is placed in the queue, the system's manager is notified.
+It is advised that he/she scans the file for the cause of the rejection before
+attempting redelivery. Messages are usually queued when the MTA is down
+(in which case no manual scanning of the file is required), file systems
+are full, etc. These correspond to error codes 4xx and 5xx (see RFC 821).
+.SH DESCRIPTION:\ queued
+This is the daemon that looks for files in the mail queue. It uses
+\fIpqueue\fP for redelivery. The queue is checked every \fIfrequency\fP
+seconds. Whenever an error occurs with \fIpqueue\fP, \fIqueued\fP sends
+a mail message to \fImanager\fP (as defined in the \fIconfig\fP file)
+and aborts.
+.PP
+If you are using multiple threads you need to give the semaphore id to
+\fIqueued\fP. This id can be obtained by running the \fIsemset\fP utility
+that comes with the system; the id is shown in column 2.
+.PP
+\fIqueued\fP is not spawned by \fIstart\fP(1) in order to reduce the number of
+processes running, since the probability of messages being queued is
+very low. Instead, it should be started manually whenever there are
+files in the mail queue directory.
+.SH DESCRIPTION:\ pqueue
+The \fIfiles\fP given as arguments are redelivered. If any of these
+cannot be redelivered, they are requeued and will be processed in the next
+run. \fIpqueue\fP reports to the file LPDIR/.report.pqueue (if not using
+syslog(3)).
+.PP
+The following command line options are recognized:
+.TP
+-e
+Echo reports to the screen; it has no effect if the system is using syslog(3).
+.TP
+-D
+Turns debugging on; a copy of the last SMTP transaction can be found in 
+the files LPDIR/sent and LPDIR/received. Warning: these files
+are also used by \fIlist\fP(1) and \fIlistproc\fP(1) when they have their
+debug mode on, so use caution.
+.SH NOTE
+This mail queueing system should not be confused with the one implemented
+by your MTA.
+.SH SEE\ ALSO
+server(1)
+.SH COPYRIGHT
+Copyright (c) 1993-97 by the Corporation for Research and Educational Networking (CREN)

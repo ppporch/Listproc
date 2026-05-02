@@ -1,0 +1,1024 @@
+	 Instructions for Upgrading From ListProc 6.0c to 8.2
+
+
+Note: especially if you've been running ListProc as root and change to
+the convention of using a normal user (like the standard "server"),
+you will then need to be very careful not to run any ListProc binaries
+as root.  This can cause file ownership changes to root that can make
+those files inaccessible to ListProc when it later runs as server....
+Start checks for this, but I don't know if any of the other binaries
+do.  Checkmail runs setuid server, since it will generally be started
+by something running as root, like sendmail.
+
+You should do the following setup logged in as the standard account
+for ListProc:
+
+
+1) Make sure you have the necessary support files on your system
+
+These include Perl (version 5 works, and version 4 probably will),
+zcat, tar, etc., etc.
+
+
+2)  Force ListProc to send any partial digests.
+
+The format of list digests has changed slightly between ListProc
+versions 7 and 8.2 (and probably more so since 6.0c).  To make sure
+the first digests aren't saved with incorrect formats, you should
+force ListProc to send out all existing partial digests before
+starting ListProc 8.2.
+
+First turn off ListProc; while logged in to the server account and in
+the home directory of that account, issue the following command:
+
+   ./start -k
+
+And answer "Y" to each prompt to kill the existing server processes.
+
+(Note: the following HAS NOT BEEN TESTED to the point of actually
+running the list program, but ought to work.  At the very least, be
+sure to shutdown ListProc at this point.):
+
+--SCRIPT BEGIN--
+#!/bin/csh
+
+foreach list ( lists/* )
+  ./list -1 -d -L $list:t
+end
+--SCRIPT END--
+
+Copy the lines between --SCRIPT BEGIN-- and --SCRIPT END-- into a file
+named, say, forced, in the home directory of the ListProc user, change
+the mode to make it executable:
+
+   chmod 500 forced
+
+and then execute it logged in as the ListProc user:
+
+   ./forced
+
+
+3) Stop incoming mail to your server machine.
+
+While you are upgrading ListProc, there will be a short period of time
+during which the file permissions on catmail will not be set
+correctly, and the new catmail will fail if it tries to use the old
+6.0c config file.  This would cause incoming list and server mail to
+bounce with an "unknown mailer" or similar error, or possibly losing
+list mail without warning.  To prevent this, it is a good idea to set
+up your system to return a more friendly error that will cause the
+sender to simply re-queue the mail for later delivery.
+
+The best way to solve this problem is to simply stop your SMTP server
+(i.e. sendmail).  This will interrupt all mail to and from your site.
+No incoming mail will be lost, however, since sites trying to send you
+mail will simply queue it for later delivery.  Consult your system
+documentation for information on how to stop your SMTP server.
+
+The modifications of your current configuration files for the
+convert.pl script (described and included below) may be time
+consuming; you may want to do this on copies of the appropriate files
+before stopping your STMP server.  If you want to do this, first stop
+ListProc as described above so that no configuration changes will be
+lost.  Then modify and run convert.pl as described below until it
+produces satisfactory output files.
+
+
+4) Backup your existing server tree!
+
+Although the upgrade procedure is designed to be non-destructive, it
+is ALWAYS a good idea to make a backup of your current system before
+proceeding.
+
+If you have not already shut down ListProc as described above, do it
+now.
+
+Then use your favorite means to take a snapshot of the directory tree.
+E.g., from the ListProc home directory:
+
+   tar cf - . | gzip -c > a-file-on-a-filesystem-with-enough-room
+
+or tar cf - . | compress -c > a-file-on-a-filesystem-with-enough-room
+
+or use cpio, or tar or cpio straight to a tape drive, or use your
+normal backup system if you really trust it....
+
+
+5) Unpack the distribution files
+
+The ListProc distribution files come in a tar archive, which contains
+two compressed tar archives and two scripts, plus informational files
+such as this one.  The file will be named something like
+
+	lp8.2.09.sparc-solaris2-7.990812-1924.tar
+
+e.g. ListProc version 8.2.09, for Solaris 7 or higher, created on
+1999/08/12 at 7:24pm.
+
+Unpackage the files which came in the distribution into a temporary
+directory somewhere (NOT in LPDIR---if you are upgrading, your config
+file would get overwritten), e.g.:
+
+   tar xvf wherever-the-file-is-located/lp82*.tar
+
+You should now have nine files:
+
+README.INSTALL: instructions for new installations or upgrades from
+more recent versions.  Check the beginning of 
+
+6.0c-to-8.2.txt: this file
+
+RELEASE-NOTES: release notes for this version of ListProc.
+
+CHANGES: a list of changes to the sources, text files, etc.
+
+text.<a timestamp in the form of 980512-1439>.tar.Z: this archive
+contains the ListProc text files that are the same for all the
+different versions of Unix.
+
+install.listproc: a shell script that is designed to unpack the files
+in src.tar safely and to correctly reinstall over a previous version.
+
+install.funcs: a small shell script that does some semi-optional
+installation functions for install.listproc.  You can run it
+separately later; you will need to know the root password to run it.
+
+sample_init.d: A System V Release 4 (SVR4, e.g. Solaris) script for
+automatically starting and stopping ListProc on boot and shutdown.
+
+And an archive something like bins.sparc-solaris2-7.990812-1924.tar.Z,
+which contains the binaries for your particular version of Unix.
+
+
+6) A new feature in 8.2 is a reverse user lookup database (see the
+"global user database" section of the 8.2 release notes for more
+details).
+
+The installation script will automatically try to create this database,
+but since the config file will be incorrect for 8.2 it will almost
+certainly fail.  To avoid this problem, create a dummy copy of the
+file the script looks for in the ListProc home directory:
+
+   touch dir-ListProc-runs-in/users.db
+
+This will fake out install.listproc by creating a dummy user database
+file so that it doesn`t try to create the reverse database; later you
+will have to create it after converting the config files.
+
+
+7)  Run the installation script
+
+Logged in as your ListProc user account, run install.listproc from the
+command prompt to finish unpacking the distribution files:
+
+   ./listproc.install
+
+This setup script does a number of things after doing some sanity
+checks.  First, if the LPDIR environment variable is set (it defines
+the directory from which ListProc runs, and is critical in version 8),
+it copies all of the distribution files to the directory specified;
+otherwise, it prompts you for the correct directory (make *sure* to
+set LPDIR later, as described below).
+
+Then it checks for the existence of an executable "serverd" binary to
+see if it is doing an upgrade (if it doens't find serverd, or if it's
+not executable, it will overwrite your old installation rather than
+upgrade).  Since you are doing an upgrade, you should see the
+following message:
+
+  It appears that you are upgrading from a previous version of ListProc.
+
+if you see this message instead:
+
+  I don't see the standard ListProc binaries in $LPDIR
+  so I will assume this is a new installation.  This means I will NOT
+  try to save any old files in this directory.  
+
+Do not proceed; hit ^C or whatever is your interrupt character.
+
+Now the install script will kill existing ListProc processes if you
+have not done so already.
+
+It will then say:
+
+  I now will save your old binaries and configuration files so you can
+  easily revert to your current version if there are any problems with
+  this installation.
+
+Do not worry too much if there are problems with this phase---you
+*did* do a backup of the whole directory tree before starting the
+upgrade (after stopping ListProc and your mailer), didn't you?
+
+It will save critical config and binary files to lp-save*.tar; expect
+the three following error message from tar in a 6.0c to 8.2 upgrade:
+
+  tar: can't change directories to lists/*: No such file or directory
+  tar: dbglpfiles: No such file or directory
+  tar: debug: No such file or directory
+
+The first is a failure to save the individual list configuration
+files; these don't exist in 6.0c (they'll be created in a process
+described below).  dbglpfiles is a program that doesn't exist in 6.0c,
+so it can't be saved away (this script is used for both upgrades from
+6.0c and from later versions that do have these files).  Debug is a
+directory containing unstripped binaries which is new with 8.2.09.
+
+It then renames critical directories and config files by adding "O"
+to the beginning, unpacks the binary and text archive files, renames
+the new versions of the critical items by adding "N" to the beginning,
+and then restores the original critical items by removing the O..
+
+I.e. your old directories and config files will keep their names, and
+the new default config files and directories supplied in the
+distribution will be named N<name>; you will need to use these as a
+guide to updating your config files, as described below.  It will then
+tell you:
+
+  Your original files have been restored.  After the installation, you
+  should examine the new versions of these files and directories to see
+  if there are any changes you would like to use.  If you want to use
+  one of the newer versions you will have to manually remove the old
+  version and rename the new version to the correct filename.
+
+Then it modifies directory paths for ListProc specific archive files
+for this release in Narchive; you should integrate some or all of
+these new archives into your current archive directory.
+
+Then it ensures that the file permissions are properly set for each of
+the system binaries by explicitly setting them.  In particular, it
+will set the "setuid" bit for both catmail and serverd.  Setup also
+gives you the opportunity to have serverd owned by root, if you want
+to allow ILP connections to a privileged port (a port equal to or
+below 1024; 372 is the default), and know the root password.
+
+If you created a users.db files as described above, it will now say:
+
+  It appears that you already have a valid user database, so I will not
+  generate one now.  If you feel that this database may be invalid, you
+  can recreate it at any time with the following command:
+
+	  $LPDIR/revdb create
+
+You *will* need to do this, but only after doing further conversions
+as described below.  At this point in the upgrade, the configuration
+information is not in the right format, and revdb would error out
+harmlessly.  After this installation script is finished, delete the
+user database you created above:
+
+   rm $LPDIR/users.db
+
+
+8)  Set the system environment variables
+
+ListProc 8.2 looks at several environment variables in order to
+determine aspects of its behavior.  LPDIR is the only one you *must*
+set.
+
+LPDIR 
+
+  This variable defines the default directory for ListProc.  All of
+  the main server programs use this environment variable to determine
+  where to find ListProc's data files and auxiliary commands.  Hence,
+  it is essential that this environment variable be set correctly if
+  the server is to run correctly.
+
+ULISTPROC_ACCOUNTING_PROGRAM
+
+  This optional environment variable specifies the path to an
+  accounting program to be used each time messages are sent out from
+  ListProc.  The arguments passed to the accounting program are as
+  follows:
+
+  1. --list
+  2. the-list-alias
+  3. --file
+  4. the-messagefile
+
+  5. one of the following; the comments in parens "()" explain the
+     transaction type and how to interpret argument 6:
+
+     --regsub        ( regular mail recipients )
+     --digest-mime   ( a digest in mime-format )
+     --digest-nomime ( a digest not in mime-format )
+     --news          ( posting to the news system )
+     --peer          ( mail to peer recipients )
+
+  6. the number of items of the above type that have been done
+     (e.g. number of recipients for --regsub )
+
+
+To ensure that all of the appropriate environment variables are set
+properly each time you start the system, you should set them in your
+server account's shell's initialization file.  The commands in this
+file will be executed each time you log in to the server account.  If
+you use su to change to the server account, make sure you use the "-"
+argument as below:
+
+   su - server
+
+This will ensure that the shell is a login shell, and hence that the
+shell initialization files will be read.
+
+The name of the shell initialization file and the specific commands
+you should use depend on the type of shell you use for the server
+account.  Examples for the two most common shell families are listed
+below:
+
+The C-shell
+
+If you are using a variant of the the C-shell (csh, and tcsh), the
+shell initialization file used is .cshrc.  You should add the
+following lines to the .cshrc file in the server's home directory.
+(If there is no .cshrc, you should create one, incorporating the
+default one for your system.)
+
+   setenv LPDIR the-path-to-the-server-directory
+
+   unalias ls rm (etc.)
+
+(You could place this in the .login file instead, but .cshrc is a
+little safer.)
+
+The Bourne Shell
+
+If you are using a variant of the Bourne shell (sh, bash, ksh, zsh,
+ash, etc.), you should add the following lines to the .profile file in
+the server's home directory:
+
+   LPDIR=path-to-ListProc-home-directory;  export LPDIR
+
+
+9) General discussion on changing configuration files
+
+As described above, directories and config files are preserved; this
+is the list of the items preserved with the N/O method described above:
+
+doc
+help            .ignored
+archives        .aliases
+config           welcome.live
+owners           welcome.global
+support          signoff.global
+samples          unwanted.hosts
+
+(Note that some of these files and directories do not exist in 6.0c,
+but if you later do another installation of 8.2, or upgrade to 8.3,
+they will then be saved.)
+
+All of the new configuration files and standard text files will be
+created with an "N" preceeding them.
+
+You should decide if you want to use these new files.  You certainly
+want to use the new config file as a starting point, as it has *many*
+new configuration options in it, and many parts of the 6.0c config
+file get moved to list specific config files.  And unless you've
+extensively customized your help files, you'll probably want to
+replace the help directory with Nhelp.  If you want to use any of
+these files, we suggest that you back up your old files by moving them
+to Ofilename, then move the new files from the Nfilename to just
+filename.
+
+As of the writing of this guide in March 1999, the Site Reference
+Manual has not been updated since version 8.0, so you will need to
+read the release notes for 8.1, 8,1a, and 8.2 for changes and
+additions.  (In addition, you might find it useful to read the 7.2 and
+8.0 release notes for additional differences between 6.0c and 8.2.)
+An update of the entire documentaion set for 8.2 is in progress.
+
+For archive and lists directories, you will almost certainly want to
+use the original versions, as these still contain all of the
+information from your previous installation.  You should also
+definitely keep the .subscribers, .ignored and .aliases, as these
+contain important information about the setup of your site.
+
+In addition, individual list config information must be moved down
+into the list directories into new individual config files in a
+process described below in the Upgrading Per List Files section
+(i.e. each list gets a config named $LPDIR/lists/list-name/config).
+
+The decision whether or not to use the new or the old versions of the
+other files is entirely up to you.  Often it is useful to keep the new
+versions around for reference purposes.  Unless you have customized
+the help, welcome, or signoff files, we recommend that you replace
+these with the newer versions included in the distribution.
+
+
+10) Upgrading configuration files
+
+The formats of critical configuration files have be changed between
+6.0 and 8.2, and we provide an utility that helps to update these,
+which you will find at:
+
+  $LPDIR/support/convert.pl
+
+as well as at the bottom of this file.
+
+This is a perl script.  It takes your old owners and config files as
+well as your old aliases file (from /usr/lib/aliases or /etc/aliases
+or the equivalent) and generates two files: requests.tosubmit and
+aliases.toadd.  The convert script has several variables which MUST be
+customized to your site; check the comments at the beginning of the
+script for details.  Be sure to COMPLETELY read all the notes at the
+beginning of the script.  A copy of the entire script is enclosed at
+the bottom of this document; you can run it ahead of time to work
+through as many problems as you can before you shutdown your mailer
+and start the conversion process.
+
+Note: one site running Solaris 2.51 and Perl 5.001 got a compliation
+error trying to run convert.pl.  It is confirmed to work on Perl
+5.005_2 on Solaris 7 and Perl 4 on Ultrix (!).
+
+a) Edit the local variables in the conversion script, convert.pl,
+according to the directions in the top of the script, so that the
+script knows where to find the input files and the email address and
+site password used by the list manager.  I.e. you will need to change
+these settings:
+
+   $managerpassword = "manager password";
+   $lpdirectory="/usr/local/listproc";
+   $listmanadd="manager@u.washington.edu";
+
+Note: at least for Perl 5, write the $listmanadd setting with a
+backslash before the @:
+
+   $listmanadd="manager\@u.washington.edu";
+
+or put the whole string in single quotes:
+
+   $listmanadd='manager@u.washington.edu';
+
+These can probably be left alone (just make copies with these names
+for you and the script to work on):
+
+   $configfile="config.old";
+   $ownersfile="owners.old";
+   $oldaliasesfile="aliases.old";
+
+b) Apply the necessary modification to your config.old file.  Pay
+close attention to all the comments in convert.pl, expecially:
+
+   # - Automatically preserves LISTSERV automatic archive format:
+   #   listname.logyymm (you should alter this if you want a different format).
+
+in the features list if you don't use the standard archive format or
+path.  You'll need to edit this line
+
+   print INIT "archive ",$lpdirectory,"/archives/",$listname," ",$listname,".log%y%m,&\n";
+
+which will hopefully be straightforward even if you don't know Perl.
+For example, this modification:
+
+   print INIT "archive ",$lpdirectory,"/archives/lists/",$listname," ",$listname,".log%y%m%d,&\n";
+
+would specify 
+
+   $LPDIR/archives/lists/list-name %y%m%d etc.
+
+instead of the default:
+
+   $LPDIR/archives/list-name %y%m etc.
+
+AND:
+
+   # In the server line(s) in the config.old file:
+   # 
+   # - There only is "server listaddress" on the first line.
+   # - Subsequent lines must begin with "-a" or "-c" in the first two columns.
+
+I.e. if your server line looked like:
+
+   server listproc@foo.edu  -e -r statistics -b get -a FOO -a BAR &
+   -a BAZ &
+   -a QUUX
+
+change it to:
+
+   server listproc@xxxx.gov
+   -a FOO
+   -a BAR
+   -a BAZ
+   -a QUUX
+
+(other things like statistics can be set seperately later; see the
+Site Reference manual.)
+
+IN ADDITION:
+
+Make sure the capitalization of the list in the list directive matches
+the list in the owners file (lowercase is safe for both).  Also make
+sure there is an entry for each owner in a list directive in the
+owners file.  Check in the requests.tosubmit file to make sure there
+is at least one owner specified for each list; listproc's behavior is
+undefined if a list has no owner.
+
+c) In your directory with the above ".old" files, run the conversion
+script (convert.pl).  This will generate two files. The first file,
+requests.tosubmit, will contain a series of ListProc configuration
+commands that will create your lists in the new configuration scheme,
+and set the list options correctly to the old parameters.  The second
+file, aliases.toadd, is the system aliases for the mailing list which
+must replace the old aliases.  (This part requires root access).
+
+d) Save the old config and owners files in a temporary location
+(e.g. Oconfig, Nowners), and copy in the config and owners files from
+the new ListProc distribution (Nconfig, Nowners) to $LPDIR/config and
+$LPDIR/owners.  Edit the new ListProc config file to suit your site
+(In http://www.cren.net/listproc/docs/index.html see the Site
+Reference manual and any release notes after the version of ListProc
+it documents (8.0 currently)). Edit the top entry for the ListProc
+site manager in the owners file.
+
+e) As the root user, edit the UNIX mail system aliases file (typically
+/etc/aliases, /usr/lib/aliases or /etc/mail/aliases if you are using
+sendmail) and replace the existing mailing list aliases with those in
+the file aliases.toadd.  Keep the existing alias for listproc, which
+should look something like this:
+
+   listproc: "|/home/server/catmail -r -f"
+
+If you are using sendmail, after you remove all the old aliases from
+the system alias file and add the new ones, you must run the
+newaliases command.  (This is a system command, not a ListProc command
+and it requires root access).
+
+f) Start up the ListProc server, running as the ListProc user:
+
+  ./start
+
+You should see something like this in the logfile:
+
+  Mar 25 15:10:54 start[1202]:  --- STARTING LISTPROCESSOR SYSTEM ---  ListProcessor(tm), (c) 1993-98 by CREN. 
+  Mar 25 15:10:54 start[1202]: All rights reserved.  
+  Mar 25 15:10:57 start[1202]: Old ListProcessor(tm) processes running: 0 
+  Mar 25 15:11:01 start[1202]: Old ListProcessor(tm) processes killed: 2 
+  Mar 25 15:11:04 start[1202]:  Number of active lists: 0
+  Mar 25 15:11:06 serverd[1237]: serverd starting with uid 10 (server)
+
+Don't worry about the old processes killed report---I believe that to
+be harmless (and if you're not running as root, start cannot kill
+anyone else's processes).
+
+If the logfile reports any problems with your config file, fix them
+and then try again.
+
+Then stop Listproc:
+
+   ./start -k
+
+You should see appropriate entries in the log file after this.  Also,
+a small reverse database (users.db) should be created after stopping;
+however, if you are runing serverd setuid root, it will be owned by
+root.  If so, change the ownership to the ListProc user id with chown,
+or delete the file and run revdb:
+
+   ./revdb create
+
+to create an "empty" database.
+
+g) Take the contents of requests.tosubmit and put them in the file
+$LPDIR/requests.  If that file is not zero length (if it has any
+requests already in it), delete them, or save them away (old pending
+requests will not be likely to work until the lists are set up).
+
+If you have many lists, split up the requests file into batches of 25
+or so lists, with the email address at the top of the original at the
+top of all the individual files, and run the following start/stop
+process on each file; batching too many list creation commands in one
+request hits a bug in the current version of 8.2:
+
+Start up ListProc:
+
+   ./start
+
+It's a good idea to be watching this process with "tail -f
+the-logfile" (listproc.log if you aren't using syslog, or whatever
+you've set it to if you're using syslog), and you should stop ListProc
+as soon as it's finished creating the last list (in case there's any
+mail waiting to be sent from before the upgrade).
+
+Notes on interpreting the logfile:
+
+Do not worry about smtp failures such as this:
+
+  Mar 25 15:57:30 listproc[1689]: smtp_open(): connect() call failed. errno(146), Connection refused
+
+Since we previously turned off sendmail, ListProc is not be able to
+send email to the site manager about the results of each list
+creation.  These will be stored in the mqueue directory, and you
+should see one message for each list reporting successful creation.
+If mqueue was empty to begin with, you can just read each message and
+then delete all of them.  Please do read each message, since
+convert.pl is far from perfect and there might be errors, or important
+configuration options not picked up.
+
+You should see something like the following:
+
+  Mar 25 15:57:29 listproc[1689]: request: init the-password the-listname (etc.)
+  Mar 25 15:57:29 start[2006]:  --- INITIALIZING LISTPROCESSOR SYSTEM --- 
+
+for each list, and at the end of the process you should see something like:
+
+  Mar 25 15:57:33 listproc[1689]: Exiting, exit code 17
+  --signal safe-- serverd[1688]: Process 1689 exited
+  --signal safe-- serverd[1688]: serverd reinitializes: LISTPROC: exit code 17
+  Mar 25 15:57:33 serverd[1688]: serverd: reinitializing: 
+  Mar 25 15:57:36 serverd[1688]: 53 lists
+
+(Serverd reinitializes so that it can pick up the new list(s) without
+you having to restart it.)
+
+It will then try to send an empty digest for each list:
+
+  Mar 25 15:57:36 serverd[1688]: --- DIGEST TIME REACHED FOR LIST the-name ---
+  Mar 25 15:57:36 serverd[1688]: Empty digest for list the-name  - not sending
+
+If you have an initial problem getting the requests to run, the first
+list might be defined at the bottom of the config file.  You'll need
+to delete that entry before you try again.
+
+For each list, this process will:
+
+ create an entry in the top level config file ($LPDIR/config)
+
+ populate $LPDIR/owners; note that CC options are *not* captured by
+ convert.pl, and you will have to enter these seperately
+
+ create a per list config file ($LPDIR/lists/for-each-list/config)
+ with the proper list configuration
+
+ populate the empty reverse users database, users.db (I believe this
+ is the step that takes the most time)
+
+h) Stop the ListProc server (execute "start -k").  Your upgrade to
+ListProc 8.2 is now complete.
+
+Notes:
+
+ListProc 6 allowed certain characters in the list password field which
+are not allowed under 7.2 and above.  Try to avoid using the quotation
+mark, apostrophe, and the comma (" ' ,).
+
+Unless your site is running the script re_from, ListProc 6.0 and below
+use the envelope address (the "From " header) instead of the "From:"
+header.  In order to conform to the relevant RFCs, ListProc 7.2 and
+above take the user's address from the "From:" header.  Unfortunately,
+this means that some users from previous versions of ListProc may not
+be recognized after the upgrade.
+
+
+11) It is safe to start your SMTP server (i.e. sendmail) now.
+
+
+12) You may now start ListProc with the start command.
+
+   ./start -k
+
+
+(End of instructions.)
+
+----------------------------------------------------------------
+
+Below you will find convert.pl, which as described above, you may want
+to try running and perfecting before turning off your SMTP server (you
+can try it before turning off ListProc, but then be sure to run it one
+more time after turning ListProc off to capture any configuration
+changes made in the meanwhile).
+
+Copy the lines between --SCRIPT BEGIN-- and --SCRIPT END-- into a file
+named convert.pl, change the mode to make it executable:
+
+   chmod 755 convert.pl
+
+and modify and run it as described above.
+
+--SCRIPT BEGIN--
+#!/usr/local/bin/perl
+#
+#	Modified from the original file by,
+#	Marco Hernandez 
+#
+# The convert.pl program will convert as much as possible information from
+# a Listproc 6.0c server to Listproc 7.1 format.  
+# 
+# Tom Remmers
+# University of Washington
+# 
+# 
+# Input Files
+# -----------
+# 
+# config.old		From ~server home directory.
+# owners.old		From ~server home directory.
+# aliases.old		From /usr/lib/aliases or equivalent.
+# 
+# 
+# Output Files
+# ------------
+# 
+# requests.tosubmit	File to append to L7's ~server/requests
+# aliases.toadd		File to append to systems /usr/lib/aliases.
+# 
+# 
+# Config File Format Requirements
+# -------------------------------
+# 
+# The config.old file must not have any "&" continuation characters for 
+# any of the specific list lines.
+# 
+# In the server line(s) in the config.old file:
+# 
+# - There only is "server listaddress" on the first line.
+# - Subsequent lines must begin with "-a" or "-c" in the first two columns.
+# - All private and concealed lists must be on consecutive lines, eg.
+#   no comments or blank lines.
+# - Private and concealed lists must be on the same line as the 
+#   associated "-a" or "-c" flag.
+# 
+# 
+# Improvements Over Distribution Code 
+# -----------------------------------
+# 
+# The improvements refer to the requests file that is given to listproc to 
+# initialize all lists.
+# 
+# - Creates one requests file that can be appended to ~server/requests
+# - Creates one aliases file that can be appended to /usr/lib/aliases
+# - Does all lists at once
+# - Parses concealed and private, rather than the interactive prompt
+# - Does not add "moderated-edit" for each list
+# - Corrects minor syntax errors
+# - Parses list "-P" and "-f" flags
+# - Grabs "-m" flags from old /usr/lib/aliases file
+# - Automatically preserves LISTSERV automatic archive format:
+#   listname.logyymm (you should alter this if you want a different format).
+# - Can specify different mail alias pipe program, eg. Catmail
+# 
+# 
+# To Do/Flaws
+# -----------
+# 
+# - Does not remove invalid puncuation from comment field (" %[^<>`*?|,\n]")
+# - Does not parse "&" continuation lines in 6.0 config file
+# - Does not parse owners CC options 
+# - Does not parse disable lines from 6.0 config file
+# - Does not parse header lines, but it really doesn't need to.
+# - Does poor job of parsing mail defaults, you would have to modify 
+#   commented code below to suit your particular format.
+# 
+# Caveats
+# -------
+# 
+# The only error checking occurs when listproc processes the request file.
+# Since I'm only running the program once, the modifications are not as
+# thorough as they could be.  Others are encouraged to improve this program.
+#
+# If you have many lists, make sure to increase the limit_message parameter
+# in the config file if needed:
+#
+# limit message 512000    # reject messages longer than 65536 bytes
+
+###########################################################################
+#  Define local input information.  You WILL need to modify some of these!
+
+$managerpassword = "manager password";
+$lpdirectory="/usr/local/listproc";
+$configfile="config.old";
+$ownersfile="owners.old";
+$oldaliasesfile="aliases.old";
+$listmanadd="manager@u.washington.edu";
+$catmail="catmail";
+
+# Note!! Uncomment the "no-reflector" parameter below if you want the
+# list comment to appear in the outgoing "To:" field.
+# Also, go to the /^default/ section below and modify the code to suit
+# your own 6.0 format if you want to parse mail defaults 
+##########################################################################
+
+#  Output files
+$initfile=">"."requests.tosubmit";
+$newaliasesfile=">"."aliases.toadd";
+
+# Create array of lists, concealed lists, and private lists 
+# from old config file
+
+open(CONFIG,"$configfile") || die "Can't open $configfile $!\n";
+while (<CONFIG>) {
+        if (/^list/) {
+           @listline=split(' ',$_);
+           @list_array[$list_ind++]=@listline[1];
+        }
+	if (/^server/) {
+	   while (<CONFIG>) {
+	      if (/^-/) {
+	         @listline=split(' ',$_);
+	         $number_of_elements=@listline;
+	         for($i=0; $i < $number_of_elements-1; $i=$i+2) {
+	            if ($listline[$i] =~ "a") {
+	               @private_array[$private_ind++]=@listline[$i+1];
+	            }
+	            if ($listline[$i] =~ "c") {
+	               @conceal_array[$conceal_ind++]=@listline[$i+1];
+	            }
+	         }
+	      }
+	      else {
+	         last;
+	      }
+	   }
+	}
+}
+
+# Open input/output files for big crunch
+open(INIT,$initfile) || die "Can't open $initfile $!\n";
+open (ALIASFILE,$newaliasesfile) || die "Can't open $newaliasesfile $!\n";
+
+# Create mail header
+print INIT "From $listmanadd\n\n";
+
+# Big loop through all lists in lists file. 
+foreach $listname (@list_array) {
+
+# reset flags
+$validlist=0;
+$send_by_all=0;
+$reply_to_sender=0;
+$moderated_edit=0;
+$forward_rejects=0;
+$list_ind=0;
+$private_ind=0;
+$conceal_ind=0;
+
+# Go back to start of old config file
+close(CONFIG);
+open(CONFIG,"$configfile") || die "Can't open $configfile $!\n";
+
+# Loop through old config file for info about list
+# NOTE:  No indent here
+while (<CONFIG>) {
+	if (/^list/) {
+	   @listline=split(' ',$_);
+		if(@listline[1] eq $listname) {
+			$validlist=1;
+			$listpassword=@listline[4];
+			$listaddress=@listline[2];
+			$listowner=@listline[3];
+			print INIT "init ",$managerpassword," ",$listname," ",$listaddress," &\n";
+			print INIT "password ",$listpassword,",&\n";
+			$number_of_elements=@listline;
+			$start=5;
+			if($number_of_elements > $start) {
+			   for($i=$start;$i < $number_of_elements;$i++) {
+				if ($listline[$i] =~ "s") {
+				   $send_by_all=1;
+				}
+				if ($listline[$i] =~ "p") {
+				   $reply_to_sender=1;
+				}
+				if ($listline[$i] =~ "P") {
+				   $reply_to_sender=1;
+				}
+				if ($listline[$i] =~ "f") {
+				   print INIT "forward-rejects,&\n";
+				}
+				if ($listline[$i] =~ "M") {
+			  	   print INIT "moderated-edit ",$listowner,",&\n";
+				}
+			    }
+			}
+		}
+	}
+}
+if ($validlist eq 0) {
+	print "ERROR:  could not find ",$listname," in the config file \n";
+	exit 1;
+}
+if ($reply_to_sender) {
+	print INIT "reply-to-sender,&\n";
+}
+else
+{
+	print INIT "reply-to-list-always,&\n";
+}
+#	If uncomment next line, it will do comment thing
+#	print INIT "no-reflector,&\n";
+
+print ALIASFILE $listname,":\"|",$lpdirectory,"/",$catmail," -L \U$listname\E -f\"\n";
+print ALIASFILE $listname."-request",":\"|",$lpdirectory,"/",$catmail," -L \U$listname\E -fo\"\n";
+print ALIASFILE "owner-".$listname,":\"|",$lpdirectory,"/",$catmail," -L \U$listname\E -fe\"\n";
+
+seek(CONFIG,0,0);
+while(<CONFIG>) {
+	if (/^archive/) {
+	   @archiveline=split(' ',$_);
+		if(@archiveline[1] eq $listname) {
+			print INIT "archive ",$lpdirectory,"/archives/",$listname," ",$listname,".log%y%m,&\n";
+		}
+	}
+	if (/^ceiling/) {
+		@ceilingline=split(' ',$_);
+		if(@ceilingline[1] eq $listname) {
+		  print INIT "message-limit ",$ceilingline[2],",&\n";
+		}
+	} 
+	if (/^comment/) {
+		@commentparse=split(' ',$_);
+		if(@commentparse[1] eq $listname) {
+			chop(@commentparse=split('#',$_));
+			print INIT "comment \"",@commentparse[1],"\",&\n";
+		}
+	}
+
+#  Fix this according to your own format.  As is, it parses,
+#
+#  default list {
+#    mail = ack
+#  }
+#
+#	if (/^default/) {
+#		@defaultline=split(' ',$_);
+#		if(@defaultline[1] eq $listname) {
+#                	$_ = <CONFIG>;
+#			@mailline=split(' ',$_);
+#			print INIT "default mail ",$mailline[2],",&\n";
+#		}
+#	}
+	if(/^digest/) {
+		@digestline=split(' ',$_);
+		if(@digestline[1] eq $listname) {
+		   if($digestline[3] < 168) {
+			print INIT "digest daily 23:59,&\n";
+		   }
+		   if($digestline[3] > 168 && @digestline[3] < 336) {
+			print INIT "digest weekly Sunday,&\n";
+		   }
+		   if($digestline[3] > 336) {
+			print INIT "digest monthly,&\n";
+		   }
+		}     
+	}
+		
+}
+
+open(OWNERS,$ownersfile) || die "Can't open $ownersfile: $!\n";
+while (<OWNERS>) {
+	if(substr($_,0,1) ne "#") {
+	  @inline=split(' ',$_);
+		if(@inline[1] eq  $listname) {
+	  		print INIT "owners ",@inline[0],",&\n";
+		}	
+	}
+}
+
+
+open(ALIASES,"$oldaliasesfile") || die "Can't open $oldaliasesfile $!\n";
+while (<ALIASES>) {
+	@listline=split(' ',$_);
+        $listmatch="$listname:";
+	if(@listline[0] eq $listmatch) {
+		$number_of_elements=@listline;
+		$start=3;
+		if($number_of_elements > $start) {
+		   for($i=$start;$i < $number_of_elements;$i++) {
+			if ($listline[$i] =~ "m") {
+                           print INIT "moderated-no-edit ",$listowner,",&\n";
+			}
+                   }
+		}
+        }
+}
+
+$listupp = "\U$listname";
+$private_list=0;
+$concealed_list=0;
+
+foreach $concealed (@conceal_array) {
+	if($concealed eq $listupp) {
+	   $concealed_list=1;
+	   print INIT "hidden-list,&\n";
+	}	
+}
+if ($concealed_list eq 0) {
+	print INIT "visible-list,&\n";
+}
+
+foreach $private (@private_array) {
+	if($private eq  $listupp) {
+	   $private_list=1;
+           print INIT "owner-subscriptions,&\n";
+	}	
+}
+if ($private_list eq 0) {
+	print INIT "open-subscriptions,&\n";
+}
+
+if ($send_by_all) {
+	print INIT "send-by-all\n\n";
+}
+else
+{
+	print INIT "send-by-subscribers\n\n";
+}
+
+# End of foreach loop through the lists
+}
+--SCRIPT END--

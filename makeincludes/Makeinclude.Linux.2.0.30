@@ -1,0 +1,50 @@
+#-*-makefile-*-
+#
+#
+
+# 
+# Makeinclude file for ListProcessor(tm) 8.2
+#
+# This defines the specific compilation parameters needed at a
+# particular porting site.  For instructions on how to adjust these
+# definitions, see the "Makeinclude.sample" file in this directory.  
+#
+
+# define your compiler (some source files may need different compiler):
+#CC		= gcc -Wall 
+CC		= gcc -fwritable-strings
+
+# define special symbols (system, preprocessor options, etc):
+DEFINES = -DHAVE_SETJMP_H \
+		  -DBUFFSIZ=10240 -DNO_MTA_REST -DMMAP \
+		  -DUSE_CARRIAGE_RETURN_LINEFEED \
+		  -DSPEED_UP_SUBSCRIBER_LOOKUPS 
+# -DNO_REVDBM
+
+# define the optimization level
+OPTIMIZATION = -gg
+
+
+# define linking options and libraries
+LDFLAGS		= $(OPTIMIZATION) -static # don't depend on the installed lib6!
+# on the other hand, with this break things by putting the lib out of sync with the kernel?
+LIBS		= 
+MATH_LIB	= -lm -lc
+
+
+RANLIB		= ranlib
+#RANLIB		= ar ts
+
+
+
+SHELL		= /bin/sh
+CFLAGS		= $(OPTIMIZATION) $(DEFINES)
+LD			= $(CC) $(LDFLAGS)
+
+
+
+#
+# Define the new line thing for /bin/echo
+#
+#ECHO_C		=  \c
+ECHO_N		= -n #The space after this is important!!!

@@ -1,0 +1,57 @@
+#! /bin/sh
+#                          @(#)alias_ignore	6.2 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.alias_ignore
+#
+
+#! /bin/sh
+cat <<EOF
+
+A note on syntax:  
+
+   * square bracktes ('[' and ']') indicate that the parameter is optional.  
+   * angle brackets ('<' and '>') indicate that you should enter an 
+     actual value
+
+In BOTH cases, these brackets are used only to show how the command
+works - they should not be added in actual commands sent to the
+ListProc server.
+
+
+Syntax: alias <list> <password> <new-address> <address-as-subscribed>
+        ignore <list> <password> <address>
+
+        Alias an existing subscriber to a new address, or ignore postings from
+        the specified address. Both requests are aliases of the more generic
+        PUT request:
+
+        put <list> <password> alias <address> <address>
+        put <list> <password> ignore <address>
+
+        <address> and <new-address> can be regular expressions.
+
+        Examples:
+
+                alias ermis ermis1 uucp!bar.com!foo foo@bar.com
+                alias ermis ermis1 ^@.*:(.*)@(.*\..*) \1@\2
+
+        The latter will remove source routing from all addresses and convert
+        them to the user@domain syntax; for example, @GATEWAY:USER@HOST.DOMAIN
+        will be converted to USER@HOST.DOMAIN).
+
+                alias ermis ermis1 [^!@]*!([^!@.]*)!([^!@]*)@.*  \2@\1.uucp
+
+        This will convert GATE!HOP!USER@UUCP.SOME.COM to USER@HOP.UUCP
+
+                ignore ermis ermis1 foo@bar.com
+                ignore ermis ermis1 ~<.*\.com|.*\.edu>
+
+        The latter restricts postings to .com and .edu domains only.
+EOF

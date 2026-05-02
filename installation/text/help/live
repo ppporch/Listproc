@@ -1,0 +1,174 @@
+#! /bin/sh
+#                          @(#)live	6.3 CREN 98/03/03
+# 
+#                         Copyright (c) 1993-98 by
+#         the Corporation for Research and Educational Networking (CREN)
+# 
+# All rights reserved. This software comprises confidential
+# information of CREN and may not be used, copied or made available to anyone,
+# except in accordance with the license under which it is furnished.
+# 
+# SCCS file: /usr/SCCS/home/server/listproc/help/s.live
+#
+
+
+#!/bin/sh
+PATH=$PATH:/usr/etc:/usr/sbin:/usr/bsd:/usr/ucb
+HOST=`hostname | cut -d. -f1`
+ADDRESS=`egrep "[0-9][ 	]+$HOST" /etc/hosts | awk 'NR == 1 { print $1 }'`
+HOSTNAME=`nslookup $ADDRESS | tr -d '\[\]' | awk '$1 ~ /Name:/ { print $2 }'`
+#HOSTNAME=$HOST
+cat <<EOF
+        How to connect and use the Interactive ListProcessor(tm)
+        --------------------------------------------------------
+
+Connecting
+----------
+
+ListProcessor(tm) may be reached for interactive (direct, without using email)
+sessions if both this system and your host are on the Internet. Live sessions
+look a lot like ftp sessions, in the sense that the user may issue all of
+the valid requests he would send over email, plus download files from the
+archives. The server has also the capability of connecting to remote live UNIX
+ListProcessors(tm) for requests that refer to remote lists.
+
+To be able to connect to an ILP, you will need a program called "ilp"; this
+should be available from this site's archives; issue an 'index' request and
+'get' all files from the designated archive. There will also be X windows,
+PC and Macintosh clients available from CREN, in binary format -- the Mcintosh
+client is still under development. These clients offer a graphical user
+interface and this discussion applies to the text based ilp client only.
+
+You will need to compile the ilp client before you use it; once compiled, you
+may use it as follows:
+
+                        ilp ${HOSTNAME:-${ADDRESS:-[this host's address]}} [port]
+
+All compliant Interactive ListProcessors(tm) listen at port 372 for connections
+by default, but they may use any other port, in which case you will have
+to specify which one. For example, on host listproc.net a sample server is
+running for testing purposes; to connect to it you would issue the following
+command:
+
+                        ilp listproc.net
+
+Notice that you may also specify an IP address instead of the DNS name of
+the host. If using domain names, you probably have to be running a name
+server on your local network.
+
+The login process
+-----------------
+
+Once a connection is established, you will be asked for an email address and a
+password; these will be used to establish the privileges (valid set of requests)
+upon login. A mismatch or no email address reduces these privileges to a
+minimum (casual user).
+
+Casual users may only issue 'help', 'information', 'recipients' and 'statistics'
+for nonprivate lists, 'lists', 'index', 'get', 'view', 'search' and 'release'
+requests.
+
+Subscriber privileges also include the 'set', 'run', 'unsubscribe', and 'which'
+requests.
+
+Owners may, in addition, issue all of their administrative requests.
+
+To gain subscriber privileges you must be subscribed to at least one list, use
+your email address as shown by a 'recipients' request, and provide the password
+that you have set before. If you are subscribed to more than one lists, any
+password from the ones that you use for each list will do (assuming that your
+subscription address is the same for all those lists). However, if you belong to
+a private list, you should use the password as set for that list in order to be
+able to have access to 'recipients' and 'statistics' listings.
+
+To gain owner privileges provide your owner's address (which should be listed
+in the output of a 'configuration' command) and the list's administrative
+password. Notice that subscriptions managers, moderators and errors-to
+recipients can do the same (however, they will not be able issue requests
+they wouldn't be able to otherwise).
+
+To speed up the login process a subscriber, subscription manager, moderator
+or errors-to recipient may specifically provide a list name following his/her
+email address; the user will have to belong to that list, of course. THIS
+FEATURE IS ONLY AVAILABLE WITH VERSION 8.1 OF THE SERVER. When you connect
+to the server check the version it reports.
+
+Here is an example login process; when prompted the user types:
+
+	email address [none]: foobar@listproc.net cren-listproc
+	Password:
+
+Notice how the user specified the list name he/she belongs to after the
+email address to speed up the login process.
+
+Ending the ilp session
+----------------------
+
+To end a live session, just type 'quit' or 'exit'. To review your privileges
+at any time, type '?' or 'privileges'. Connections are limited to a certain
+amount of idle time; to get the time left on your connection, type 'timeleft'.
+
+
+Issuing requests
+----------------
+
+Requests may be continued on multiple lines by use of '&' followed by a new-line
+character. The output of every request (if it is not an error message) may be
+redirected to a file by using a '>' followed by a file name.
+
+Example:
+
+REQUEST> index > index
+
+or by using '>>' in which case the output is appended to the file. File transfer
+also takes place when you 'get' files from an archive. For example, if you
+
+REQUEST> get listproc info
+
+the output will be saved under file 'info'. You choose another file name by
+redirecting:
+
+REQUEST> get listproc info > index
+
+The keywords 'binary' and 'ascii' specify the transfer type; the default is
+'binary', i.e. files are transferred as they are; in ascii mode, new-line
+characters are translated to carriage-return/line-feed pairs.
+
+Input may also be redirected from a file by using '<' followed by a file
+name; for example:
+
+REQUEST> < batched.requests
+
+In this case, each line will be interpreted as a separate request and replies
+will be produced. Here is an example batch file:
+
+index > index
+get listproc info >> index
+quit
+
+A particularly useful case of input redirection is the 'put' request:
+
+REQUEST> put ermis ermis1 welcome < prepared-welcome-file
+
+Note that for requests requiring a password, you may replace the password with
+a dash (-) since you provided the password at login; this of course works only
+if you use the same password for all lists you are subscribed to or own.
+Then, the previous request could have been written as:
+
+REQUEST> put ermis - welcome < prepared-welcome-file
+
+Moreover, the output of requests not redirected may be piped to UNIX command
+using the '|' character.  For example:
+
+REQUEST> review ermis | more
+
+will pipe the output of the 'review' request to the UNIX "more" command. As
+another example, to look for a particular subscriber in a list, one may do:
+
+REQUEST> review venus | grep -i Name
+
+As a last note, requests for remote lists are serviced by contacting the remote
+servers, if possible. Live requests are subject to the usual restrictions
+(system loads) -- requests that are designated by the manager for batch
+processing will be rejected, and you will have to submit your request via email.
+EOF
